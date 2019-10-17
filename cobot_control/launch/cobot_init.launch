@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find franka_example_controllers)/launch/move_to_start.launch">
+        <arg name="robot_ip" value="130.230.37.115"/>
+    </include>
+</launch>
