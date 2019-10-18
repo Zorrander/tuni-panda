@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <include file="$(find cobot_control)/launch/control.launch">
+      <arg name="robot_ip" value="130.230.37.115"/>
+  </include>
+
+  <include file="$(find sem_memory)/launch/memory.launch" />
+
+</launch>
