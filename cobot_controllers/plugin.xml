@@ -1,0 +1,9 @@
+<library path="lib/libcobot_controllers>">
+  <class name="cobot_controllers/CartesianPoseController"
+         type="cobot_controllers::CartesianPoseController"
+         base_class_type="controller_interface::ControllerBase">
+    <description>
+      Demonstrate reach of the Franka
+    </description>
+  </class>
+</library>
