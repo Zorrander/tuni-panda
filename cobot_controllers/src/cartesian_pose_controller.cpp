@@ -52,7 +52,7 @@ bool CartesianPoseController::init(hardware_interface::RobotHW* robot_hardware,
       if (std::abs(state_handle.getRobotState().q_d[i] - q_start[i]) > 0.1) {
         ROS_ERROR_STREAM(
             "CartesianPoseController: Robot is not in the expected starting position for "
-            "running this example. Run `roslaunch cobot_controllers move_to_start.launch "
+            "running this example. Run `roslaunch franka_example_controllers move_to_start.launch "
             "robot_ip:=<robot-ip> load_gripper:=<has-attached-gripper>` first.");
         return false;
       }
@@ -87,5 +87,4 @@ void CartesianPoseController::update(const ros::Time& /* time */,
 
 }  // namespace cobot_controllers
 
-PLUGINLIB_EXPORT_CLASS(cobot_controllers::CartesianPoseController,
-                       controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(cobot_controllers::CartesianPoseController, controller_interface::ControllerBase)
