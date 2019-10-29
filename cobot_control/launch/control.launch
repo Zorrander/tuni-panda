@@ -1,16 +1,18 @@
 <?xml version="1.0" ?>
 
 <launch>
-    <arg name="robot_ip" />
 
-    <include file="$(find franka_control)/launch/franka_control.launch">
+    <arg name="robot_ip" default="130.230.37.115"/>
+    <arg name="load_gripper" default="true" />
+    <include file="$(find franka_control)/launch/franka_control.launch" >
       <arg name="robot_ip" value="$(arg robot_ip)" />
-      <arg name="load_gripper" value="false" />
-    </include>
-
-    <include file="$(find panda_moveit_config)/launch/panda_moveit.launch">
-      <arg name="load_gripper" value="false" />
+      <arg name="load_gripper" value="$(arg load_gripper)" />
     </include>
 
     <node name="cobot_control" type="basic_control.py" pkg="cobot_control" output="screen" />
+
+    <!--<node name="cobot_reset" type="move_start.py" pkg="cobot_control" output="screen" />-->
+
+    <node name="cobot_error_recovery" type="recover_error.py" pkg="cobot_control" output="screen" />
+
 </launch>

@@ -44,6 +44,7 @@ bool CartesianPoseController::init(hardware_interface::RobotHW* robot_hardware,
     return false;
   }
 
+  /*
   try {
     auto state_handle = state_interface->getHandle(arm_id + "_robot");
 
@@ -62,6 +63,7 @@ bool CartesianPoseController::init(hardware_interface::RobotHW* robot_hardware,
         "CartesianPoseController: Exception getting state handle: " << e.what());
     return false;
   }
+  */
 
   return true;
 }
@@ -83,6 +85,11 @@ void CartesianPoseController::update(const ros::Time& /* time */,
   new_pose[12] -= delta_x;
   new_pose[14] -= delta_z;
   cartesian_pose_handle_->setCommand(new_pose);
+}
+
+void CartesianPoseController::stopping(const ros::Time& /* time */) {
+  initial_pose_ = cartesian_pose_handle_->getRobotState().O_T_EE_d;
+  cartesian_pose_handle_->setCommand(initial_pose_);
 }
 
 }  // namespace cobot_controllers
