@@ -144,6 +144,19 @@ class MoveGroupPythonIntefaceTutorial(object):
     self.eef_link = eef_link
     self.group_names = group_names
 
+
+  def go_to_intermediate_pose(self):
+      wpose = self.group.get_current_pose().pose
+      next_point = wpose
+      next_point.position.y -=  0.1
+      next_point.position.z += 0.15
+      self.group.set_pose_target(next_point)
+      plan = self.group.go(wait=True)
+      # Calling `stop()` ensures that there is no residual movement
+      self.group.stop()
+      self.group.clear_pose_targets()
+
+
   def go_to_pose_goal(self, pose):
       wpose = self.group.get_current_pose().pose
       # Gather poses from ROS message
@@ -162,9 +175,10 @@ class MoveGroupPythonIntefaceTutorial(object):
     Make a chopstick go through for points corresponding to the 4 spaces between one's fingers.
     '''
     for i in range(len(pose_array.poses)):
-        print "============ Press `Enter` to execute the trajectory (press ctrl-d to exit) ..."
-        raw_input()
+        #print "============ Press `Enter` to execute the trajectory (press ctrl-d to exit) ..."
+        #raw_input()
         self.go_to_pose_goal(pose_array.poses[i])
+        self.go_to_intermediate_pose()
 
 if __name__ == '__main__':
     rospy.init_node('cobot_control')
