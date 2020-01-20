@@ -67,7 +67,7 @@ def all_close(goal, actual, tolerance):
   if type(goal) is list:
     for index in range(len(goal)):
       if abs(actual[index] - goal[index]) > tolerance:
-        return False
+        returchopsticksn False
 
   elif type(goal) is geometry_msgs.msg.PoseStamped:
     return all_close(goal.pose, actual.pose, tolerance)
