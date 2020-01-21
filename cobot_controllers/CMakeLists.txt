@@ -12,7 +12,17 @@ find_package(catkin REQUIRED COMPONENTS
     pluginlib
     franka_hw
     roscpp
+    std_msgs
+    message_generation
 )
+
+
+add_message_files(
+  FILES
+  Test.msg
+)
+
+generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
    LIBRARIES cobot_controllers
@@ -22,6 +32,7 @@ catkin_package(
       pluginlib
       franka_hw
       roscpp
+      message_runtime
 )
 
 include_directories(
