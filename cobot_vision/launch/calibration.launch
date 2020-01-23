@@ -9,9 +9,11 @@
       <arg name="load_gripper" value="$(arg load_gripper)" />
     </include>
 
-    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch" />
 
-    <node name="cobot_control" type="test_bench.py" pkg="cobot_controllers" output="screen" />
+    <include file="$(find apriltag_ros)/launch/continuous_detection.launch" />
+
+    <node pkg="cobot_vision" type="calibration.py" name="tf_broadcaster" output="screen" />
 
 
 </launch>

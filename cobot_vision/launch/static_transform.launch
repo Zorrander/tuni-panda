@@ -9,9 +9,9 @@
       <arg name="load_gripper" value="$(arg load_gripper)" />
     </include>
 
-    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
-
-    <node name="cobot_control" type="test_bench.py" pkg="cobot_controllers" output="screen" />
-
+    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster"
+      args="-0.6978662059917029 0.39532014930937753 0.2886320527581954 0.34802845245730857 -0.028319524678784562 0.07835016801821786 -0.9337748400838695
+      camera_color_optical_frame panda_link0 100"
+    />
 
 </launch>

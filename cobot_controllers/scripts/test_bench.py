@@ -10,7 +10,7 @@ from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from cobot_controllers.msg import Test
 import actionlib
-from franka_gripper.msg import HomingAction, HomingActionGoal, GraspAction, GraspActionGoal
+from franka_gripper.msg import HomingAction, HomingActionGoal, GraspAction, GraspActionGoal, GraspGoal
 
 
 class MoveGroupPythonIntefaceTutorial(object):
@@ -80,10 +80,11 @@ class MoveGroupPythonIntefaceTutorial(object):
       self.eef_link = eef_link
       self.group_names = group_names
 
+      self.start_sub = rospy.Subscriber("/test_bench", Test, self.routine)
       self.gripper_homing_client = actionlib.SimpleActionClient('/franka_gripper/homing', HomingAction)
       self.gripper_homing_client.wait_for_server()
-      self.gripper_grap_client = actionlib.SimpleActionClient('/franka_gripper/grasping', GraspAction)
-      self.gripper_grap_client.wait_for_server()
+      self.gripper_grasp_client = actionlib.SimpleActionClient('/franka_gripper/grasp', GraspAction)
+      self.gripper_grasp_client.wait_for_server()
       print("Gripper connected")
 
     def release(self):
@@ -97,16 +98,18 @@ class MoveGroupPythonIntefaceTutorial(object):
 
     def grasp(self, width, force):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
-        goal_params = {}
-        goal_params.width = float(width)
-        goal_params.epsilon.inner = 0.01
-        goal_params.epsilon.outer = 0.01
-        goal_params.speed = 20.0
-        goal_params.force = float(force)
-        goal = GraspActionGoal(goal_params)
-        self.gripper_grap_client.send_goal(goal)
-        self.gripper_grap_client.wait_for_result()
-        return self.gripper_grap_client.get_result()
+        goal_msg = GraspGoal()
+        goal_msg.epsilon.inner = 0.01
+        goal_msg.epsilon.outer = 0.01
+        goal_msg.speed = 20.0
+        goal_msg.width = float(width)
+        goal_msg.force = float(force)
+        goal = GraspActionGoal()
+        goal.goal = goal_msg
+        print(goal)
+        self.gripper_grasp_client.send_goal(goal)
+        self.gripper_grasp_client.wait_for_result()
+        return self.gripper_grasp_client.get_result()
 
     def lift(self):
         wpose = self.group.get_current_pose().pose
@@ -149,13 +152,14 @@ class MoveGroupPythonIntefaceTutorial(object):
         '''
         Make a chopstick go through for points corresponding to the 4 spaces between one's fingers.
         '''
-        width = msg.width
-        force = msg.force
-        reps = msg.reps
         print("=============================================")
         print()
         print("*****            TEST BENCH             *****")
         print()
+        width = msg.width
+        force = msg.force
+        reps = msg.reps
+
         print("Desired width: {}m".format(width))
         print("Desired force: {}N".format(force))
         print("Desired repetitions: {}".format(reps))
@@ -170,12 +174,11 @@ class MoveGroupPythonIntefaceTutorial(object):
         self.grasp(width, force)
         #self.lift()
         #self.go_down()
-        #self.release()
+        self.release()
 
 if __name__ == '__main__':
     rospy.init_node('cobot_control')
     test = MoveGroupPythonIntefaceTutorial()
-    rospy.Subscriber("test_bench", Test, test.routine)
     rospy.spin()
 
 

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cobot_vision</name>
+  <version>0.0.0</version>
+  <description>The cobot_vision package</description>
+
+  <maintainer email="alex@todo.todo">alex</maintainer>
+
+  <license>TODO</license>
+
+  <depend>rospy</depend>
+  <depend>roscpp</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+</package>
