@@ -42,6 +42,7 @@ if __name__ == '__main__':
 
     #rospy.Subscriber("/tag_detections", AprilTagDetectionArray, callback)
 
+    
     pose = PoseStamped()
     pose.header.frame_id = "camera"
     pose.header.stamp = rospy.Time(0)

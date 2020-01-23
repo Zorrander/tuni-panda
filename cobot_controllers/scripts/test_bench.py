@@ -165,13 +165,13 @@ class MoveGroupPythonIntefaceTutorial(object):
         print("Desired repetitions: {}".format(reps))
         print()
         print("=============================================")
-        #self.approach()
-        #print "============ Press `Enter` to go do down ..."
-        #raw_input()
+        self.approach()
+        print "============ Press `Enter` to go do down ..."
+        raw_input()
         #self.go_down()
         print "============ Press `Enter` to grasp once..."
         raw_input()
-        self.grasp(width, force)
+        #self.grasp(width, force)
         #self.lift()
         #self.go_down()
         self.release()

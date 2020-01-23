@@ -2,16 +2,35 @@
 
 <launch>
 
-    <arg name="robot_ip" default="130.230.37.115"/>
-    <arg name="load_gripper" default="true" />
-    <include file="$(find panda_moveit_config)/launch/panda_control_moveit_rviz.launch" >
-      <arg name="robot_ip" value="$(arg robot_ip)" />
-      <arg name="load_gripper" value="$(arg load_gripper)" />
-    </include>
 
-    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster"
-      args="-0.6978662059917029 0.39532014930937753 0.2886320527581954 0.34802845245730857 -0.028319524678784562 0.07835016801821786 -0.9337748400838695
-      camera_color_optical_frame panda_link0 100"
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch" />
+
+    <include file="$(find apriltag_ros)/launch/continuous_detection.launch" />
+
+    <!--<node pkg="tf" type="static_transform_publisher" name="camera_br"
+      args="0.0438542500649 -0.0728330546399 0.436123204386 0.0657111678707 0.968323359999 -0.226918290749 0.0808702802086
+      camera_color_optical_frame tag_10 100"
+    />
+
+    <node pkg="tf" type="static_transform_publisher" name="ee_br"
+      args="-0.356902918023 -0.0283920611395 0.0150206140995 0.998154446312 0.0451905204562 0.0242917595229 -0.0324873604177
+      tag_10 panda_link0 100"
+    />
+    -->
+
+    <node pkg="tf" type="static_transform_publisher" name="camera_br"
+      args="0.0438542500649 -0.0728330546399 0.436123204386 0 0 0
+      camera_color_optical_frame tag_10 100"
+    />
+
+    <node pkg="tf" type="static_transform_publisher" name="ee_br"
+      args="-0.356902918023 -0.0283920611395 0.0150206140995 0 0 0
+      tag_10 panda_link0 100"
+    />
+
+
+    <node pkg="tf" type="static_transform_publisher" name="cameras_br"
+      args="0 0 0 0 0 0 camera camera_color_optical_frame 100"
     />
 
 </launch>
