@@ -6,17 +6,32 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
 find_package(catkin REQUIRED COMPONENTS
-    rospy
-    roscpp
+   roscpp
+   rospy
+   std_msgs
+   geometry_msgs
+   message_generation
 )
 
+add_service_files(
+  FILES
+  TagPose.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
 
 catkin_package(
    LIBRARIES cobot_vision
    CATKIN_DEPENDS
       rospy
       roscpp
+      message_runtime
 )
 
 include_directories(

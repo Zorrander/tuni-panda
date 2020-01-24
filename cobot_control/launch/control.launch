@@ -12,6 +12,7 @@
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
 
     <include file="$(find cobot_vision)/launch/static_transform.launch"/>
+    <include file="$(find cobot_vision)/launch/tag_detector.launch"/>
 
     <include file="$(find cobot_controllers)/launch/moveit_cartesian.launch"/>
 

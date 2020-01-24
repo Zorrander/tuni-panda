@@ -9,6 +9,8 @@ import moveit_msgs.msg
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from geometry_msgs.msg import *
+from std_msgs.msg import Int8
+from cobot_vision.srv import TagPose
 
 class MoveGroupPythonIntefaceTutorial(object):
     """MoveGroupPythonIntefaceTutorial"""
@@ -37,6 +39,33 @@ class MoveGroupPythonIntefaceTutorial(object):
                                                      moveit_msgs.msg.DisplayTrajectory,
                                                      queue_size=20)
 
+      scene = moveit_commander.PlanningSceneInterface()
+      robot = moveit_commander.RobotCommander()
+
+      rospy.sleep(2)
+
+      ## Add the table
+      p = PoseStamped()
+      p.header.frame_id = robot.get_planning_frame()
+      p.pose.position.x = 0.
+      p.pose.position.y = 0.
+      p.pose.position.z = -.05
+      scene.add_box("table", p, (3.0, 1.0, 0.1))
+
+      ## Add the windows
+      # RPY to convert: 90deg, 0, -90deg
+      #q = quaternion_from_euler(1.5707, 0, -1.5707)
+      p = PoseStamped()
+      p.header.frame_id = robot.get_planning_frame()
+      p.pose.position.x = -0.30
+      p.pose.position.y = 0.
+      p.pose.position.z = -.05
+      p.pose.orientation.x = 0.0
+      p.pose.orientation.y = 1.0
+      p.pose.orientation.z = 0.0
+      p.pose.orientation.w = 1.0
+      scene.add_box("windows", p, (3.0, 1.0, 0.1))
+
       # Misc variables
       self.robot = robot
       self.scene = scene
@@ -44,25 +73,19 @@ class MoveGroupPythonIntefaceTutorial(object):
       self.display_trajectory_publisher = display_trajectory_publisher
       self.tf_listener = tf.TransformListener()
 
-      rospy.Subscriber("/moveit_cartesian_goal", Point, self.go_to_goal)
+      rospy.wait_for_service('calculate_tag_pose')
+      self.tag_detector = rospy.ServiceProxy('calculate_tag_pose', TagPose)
+
+      rospy.Subscriber("/moveit_cartesian_goal", Int8, self.go_to_goal)
       print("READY")
 
-    def transform_point(self, msg):
-        point = PointStamped()
-        point.header.frame_id = "camera_color_optical_frame"
-        point.header.stamp = self.tf_listener.getLatestCommonTime("/camera_color_optical_frame", "/panda_link0")
-        point.point.x = msg.x
-        point.point.y = msg.y
-        point.point.z = msg.z
-        return self.tf_listener.transformPoint("panda_link0", point)
-
     def go_to_goal(self, msg):
-        wpose = self.group.get_current_pose().pose
-        next_point = wpose
-        tag_point_r = self.transform_point(msg)
-        next_point.position.x = tag_point_r.point.x
-        next_point.position.y = tag_point_r.point.y
-        next_point.position.z = tag_point_r.point.z + 20
+        tag_pose_resp = self.tag_detector(msg.data)
+        ee_pose = self.group.get_current_pose().pose
+        next_point = ee_pose
+        next_point.position.x = tag_pose_resp.tag_pose.position.x
+        next_point.position.y = tag_pose_resp.tag_pose.position.y
+        next_point.position.z = tag_pose_resp.tag_pose.position.z + 0.20
         print(next_point)
         print "============ Press `Enter` to execute the motion ..."
         raw_input()
