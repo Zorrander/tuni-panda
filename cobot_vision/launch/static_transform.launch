@@ -19,15 +19,14 @@
     -->
 
     <node pkg="tf" type="static_transform_publisher" name="camera_br"
-      args="0.0438542500649 -0.0728330546399 0.436123204386 0 0 0
-      camera_color_optical_frame tag_10 100"
+      args="-0.0675324693382 -0.0395026493362 0.278228453327 -0.663730228805 0.703358814461 -0.239602272998 -0.0856697861792
+      camera_color_optical_frame tag_3 100"
     />
 
     <node pkg="tf" type="static_transform_publisher" name="ee_br"
-      args="-0.356902918023 -0.0283920611395 0.0150206140995 0 0 0
-      tag_10 panda_link0 100"
+      args="-0.548875383914 -0.00128473954481 0.0157822916541  0.999823656785 0.00273081635681 0.0166050694872 -0.00833484507499
+      tag_3 panda_link0 100"
     />
-
 
     <node pkg="tf" type="static_transform_publisher" name="cameras_br"
       args="0 0 0 0 0 0 camera camera_color_optical_frame 100"
