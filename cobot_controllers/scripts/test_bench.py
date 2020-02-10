@@ -6,7 +6,7 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 from math import pi
-from std_msgs.msg import String, Empty
+from std_msgs.msg import String, Empty, Float32
 from moveit_commander.conversions import pose_to_list
 from cobot_controllers.msg import Test
 import actionlib
@@ -82,10 +82,11 @@ class MoveGroupPythonIntefaceTutorial(object):
 
       self.start_sub = rospy.Subscriber("/test_bench", Test, self.routine)
       self.homing_sub = rospy.Subscriber("/homing_cmd", Empty, self.release)
+      self.approach_sub = rospy.Subscriber("/approach_cmd", Empty, self.approach)
+      self.height_test_sub = rospy.Subscriber("/height_test", Float32, self.test_height)
       self.gripper_homing_client = actionlib.SimpleActionClient('/franka_gripper/homing', HomingAction)
       self.gripper_homing_client.wait_for_server()
-      self.gripper_grasp_client = actionlib.SimpleActionClient('/franka_gripper/grasp', GraspAction)
-      self.gripper_grasp_client.wait_for_server()
+      self.gripper_grasp_client = rospy.Publisher('/franka_gripper/grasp/goal', GraspActionGoal, queue_size=10)
       print("Gripper connected")
 
     def release(self, msg):
@@ -99,18 +100,18 @@ class MoveGroupPythonIntefaceTutorial(object):
 
     def grasp(self, width, force):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
-        goal_msg = GraspGoal()
-        goal_msg.epsilon.inner = 0.01
-        goal_msg.epsilon.outer = 0.01
-        goal_msg.speed = 20.0
-        goal_msg.width = float(width)
-        goal_msg.force = float(force)
-        goal = GraspActionGoal()
-        #goal.goal = goal_msg
-        print(goal)
-        self.gripper_grasp_client.send_goal(goal)
-        self.gripper_grasp_client.wait_for_result()
-        return self.gripper_grasp_client.get_result()
+        grasp_goal = GraspGoal()
+        grasp_goal.width = float(width)
+        grasp_goal.epsilon.inner = 0.01
+        grasp_goal.epsilon.outer = 0.01
+        grasp_goal.speed = 20.0
+        grasp_goal.force = float(force)
+        grasp_msg = GraspActionGoal(goal=grasp_goal)
+        self.gripper_grasp_client.publish(grasp_msg)
+
+    def test_height(self, msg):
+        value = -msg.data/100
+        self.vertical_move(value)
 
     def vertical_move(self, value):
         wpose = self.group.get_current_pose().pose
@@ -122,7 +123,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         self.group.stop()
         self.group.clear_pose_targets()
 
-    def approach(self):
+    def approach(self, msg):
         #wpose = self.group.get_current_pose().pose
         joint_goal = self.group.get_current_joint_values()
         joint_goal[0] = 0
@@ -138,8 +139,8 @@ class MoveGroupPythonIntefaceTutorial(object):
         self.group.stop()
 
 
-    #def routine(self, msg):
-    def routine(self):
+    def routine(self, msg):
+    #def routine(self):
         '''
         Make a chopstick go through for points corresponding to the 4 spaces between one's fingers.
         '''
@@ -147,26 +148,27 @@ class MoveGroupPythonIntefaceTutorial(object):
         print()
         print("*****            TEST BENCH             *****")
         print()
-        #width = msg.width
-        #force = msg.force
-        #reps = msg.reps
-        width = 0.02
-        force = 20.0
-        reps = 1
+        width = msg.width
+        force = msg.force
+        reps = msg.reps
+        #width = 0.02
+        #force = 20.0
+        #reps = 1
 
         print("Desired width: {}m".format(width))
         print("Desired force: {}N".format(force))
         print("Desired repetitions: {}".format(reps))
         print()
         print("=============================================")
-        self.approach()
         print "============ Press `Enter` to go do down ..."
         raw_input()
         self.vertical_move(-0.21)
         while not rospy.is_shutdown():
-            print "============ Press `Enter` to go up..."
+            print "============ Press `Enter` to grasp ..."
             raw_input()
-            #self.grasp(width, force)
+            self.grasp(width, force)
+            print "============ Press `Enter` to go up ..."
+            raw_input()
             self.vertical_move(0.21)
             print "============ Press `Enter` to release..."
             raw_input()
@@ -176,7 +178,8 @@ class MoveGroupPythonIntefaceTutorial(object):
 if __name__ == '__main__':
     rospy.init_node('cobot_control')
     test = MoveGroupPythonIntefaceTutorial()
-    test.routine()
+    rospy.spin()
+    #test.routine()
 
 
 

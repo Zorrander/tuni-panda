@@ -14,5 +14,5 @@
 
     <node name="cobot_control" type="test_bench.py" pkg="cobot_controllers" output="screen" />
 
-
+    <node name="cobot_reset" type="move_start.py" pkg="cobot_controllers" output="screen" />
 </launch>

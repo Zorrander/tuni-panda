@@ -2,7 +2,6 @@
 
 import rospy
 from moveit_commander import MoveGroupCommander
-from actionlib_msgs.msg import GoalStatusArray
 from std_msgs.msg import  Empty
 
 
@@ -13,7 +12,7 @@ def execute(vide):
     commander.go()
 
 def wait_for_commands():
-    rospy.Subscriber("command", Empty,execute)
+    rospy.Subscriber("move_start", Empty,execute)
     rospy.spin()
 
 if __name__ == '__main__':
