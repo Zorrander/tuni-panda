@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     #rospy.Subscriber("/tag_detections", AprilTagDetectionArray, callback)
 
-    
+
     pose = PoseStamped()
     pose.header.frame_id = "camera"
     pose.header.stamp = rospy.Time(0)
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     pose.pose.position.y = 0
     pose.pose.position.z = 0
     pose.pose.orientation.w = 1.0
-    transformed_pose = listener.transformPose("/tag_10", pose)  # Pose of the camera from the tag
+    transformed_pose = listener.transformPose("/tag_22", pose)  # Pose of the camera from the tag
     while not rospy.is_shutdown():
         '''
         Send transform between the camera and the tag

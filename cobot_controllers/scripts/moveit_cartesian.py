@@ -76,7 +76,7 @@ class MoveGroupPythonIntefaceTutorial(object):
       rospy.wait_for_service('calculate_tag_pose')
       self.tag_detector = rospy.ServiceProxy('calculate_tag_pose', TagPose)
 
-      rospy.Subscriber("/moveit_cartesian_goal", Int8, self.go_to_goal)
+      rospy.Subscriber("/tag_goal", Int8, self.go_to_goal)
       print("READY")
 
     def go_to_goal(self, msg):
