@@ -22,6 +22,11 @@ add_message_files(
   Test.msg
 )
 
+add_service_files(
+  FILES
+  ReachTag.srv
+)
+
 generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
