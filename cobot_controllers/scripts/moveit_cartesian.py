@@ -93,7 +93,7 @@ class MoveGroupPythonIntefaceTutorial(object):
             return response
 
     def go_to_goal(self, msg):
-        response = ReachTagResponse()
+        response = ReachTagResponsei()
         try:
             tag_pose_resp = self.tag_detector(msg.tag_id)
             ee_pose = self.group.get_current_pose().pose
