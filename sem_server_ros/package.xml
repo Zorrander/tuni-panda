@@ -1,25 +1,24 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>cobot_vision</name>
+  <name>sem_server_ros</name>
   <version>0.0.0</version>
-  <description>The cobot_vision package</description>
+  <description>The sem_server_ros package</description>
 
-  <maintainer email="alex@todo.todo">alex</maintainer>
+  <maintainer email="alexandre.angleraud@tuni.fi">root</maintainer>
 
   <license>TODO</license>
 
   <depend>rospy</depend>
-  <depend>roscpp</depend>
-
   <depend>std_msgs</depend>
-  <depend>geometry_msgs</depend>
-  <depend>sensor_msgs</depend>
 
-  <depend>cv_bridge</depend>
-
+  <depend>jena_sempy</depend>
+  <build_depend>rostest</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_export_depend>message_generation</build_export_depend>
+
   <exec_depend>message_runtime</exec_depend>
 
   <buildtool_depend>catkin</buildtool_depend>
+
 
 </package>

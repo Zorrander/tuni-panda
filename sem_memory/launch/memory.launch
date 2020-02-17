@@ -1,4 +1,0 @@
-
-<launch>
-    <node pkg="sem_memory" name="memory_server" type="memory.py" />
-</launch>

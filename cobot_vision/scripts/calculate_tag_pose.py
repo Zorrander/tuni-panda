@@ -32,10 +32,10 @@ class TagPoseServer(object):
             pose.pose.position.x = tag.pose.pose.pose.position.x
             pose.pose.position.y = tag.pose.pose.pose.position.y
             pose.pose.position.z = tag.pose.pose.pose.position.z
-            pose.pose.orientation.x = 0  # tag.pose.pose.pose.orientation.x
-            pose.pose.orientation.y = 0  # tag.pose.pose.pose.orientation.y
-            pose.pose.orientation.z = 0  # tag.pose.pose.pose.orientation.z
-            pose.pose.orientation.w = 1  # tag.pose.pose.pose.orientation.w
+            pose.pose.orientation.x = tag.pose.pose.pose.orientation.x
+            pose.pose.orientation.y = tag.pose.pose.pose.orientation.y
+            pose.pose.orientation.z = tag.pose.pose.pose.orientation.z
+            pose.pose.orientation.w = tag.pose.pose.pose.orientation.w
             t = self.listener.getLatestCommonTime("/camera_color_optical_frame", "/panda_link0")
             pose.header.stamp = t
             pose_in_robot = self.listener.transformPose("panda_link0", pose)

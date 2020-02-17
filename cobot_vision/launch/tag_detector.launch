@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
 <launch>
+  <include file="$(find apriltag_ros)/launch/continuous_detection.launch" />
 
-    <node pkg="cobot_vision" type="calculate_tag_pose.py" name="tag_detector" output="screen" />
-
+  <node pkg="cobot_vision" type="calculate_tag_pose.py" name="tag_detector" output="screen" />
 </launch>

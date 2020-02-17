@@ -1,8 +1,7 @@
 <?xml version="1.0" ?>
 
 <launch>
-
-    <node name="cobot_control" type="moveit_cartesian.py" pkg="cobot_controllers" output="screen" />
-
+  
+  <node name="cobot_control" type="moveit_cartesian.py" pkg="cobot_controllers" output="screen" />
 
 </launch>

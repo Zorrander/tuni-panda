@@ -6,13 +6,14 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
 find_package(catkin REQUIRED COMPONENTS
    roscpp
    rospy
    std_msgs
    geometry_msgs
+   sensor_msgs
    message_generation
+   cv_bridge
 )
 
 add_service_files(
@@ -38,3 +39,5 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
+
+# target_link_libraries(my_awesome_library ${OpenCV_LIBRARIES})
