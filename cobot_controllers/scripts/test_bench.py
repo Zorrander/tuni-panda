@@ -3,6 +3,7 @@
 import sys
 import copy
 import rospy
+import time
 import moveit_commander
 import moveit_msgs.msg
 from math import pi
@@ -102,8 +103,8 @@ class MoveGroupPythonIntefaceTutorial(object):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
         grasp_goal = GraspGoal()
         grasp_goal.width = float(width)
-        grasp_goal.epsilon.inner = 0.01
-        grasp_goal.epsilon.outer = 0.01
+        grasp_goal.epsilon.inner = 0.005
+        grasp_goal.epsilon.outer = 0.005
         grasp_goal.speed = 20.0
         grasp_goal.force = float(force)
         grasp_msg = GraspActionGoal(goal=grasp_goal)
@@ -148,7 +149,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         print()
         print("*****            TEST BENCH             *****")
         print()
-        width = msg.width
+        width = msg.width/100
         force = msg.force
         reps = msg.reps
         #width = 0.02
@@ -159,21 +160,23 @@ class MoveGroupPythonIntefaceTutorial(object):
         print("Desired force: {}N".format(force))
         print("Desired repetitions: {}".format(reps))
         print()
+        self.group.remember_joint_values("low_pose")
         print("=============================================")
-        print "============ Press `Enter` to go do down ..."
-        raw_input()
-        self.vertical_move(-0.21)
-        while not rospy.is_shutdown():
-            print "============ Press `Enter` to grasp ..."
-            raw_input()
+        for rep in range(0, reps-1):
             self.grasp(width, force)
-            print "============ Press `Enter` to go up ..."
-            raw_input()
-            self.vertical_move(0.21)
-            print "============ Press `Enter` to release..."
-            raw_input()
-            self.vertical_move(-0.21)
+            time.sleep(2)
+            self.approach({})
+            time.sleep(2)
+            #self.vertical_move(-0.13)
+            self.group.set_named_target("low_pose")
+            self.group.go()
+            self.group.stop()
             self.release({})
+            self.approach({})
+            time.sleep(2)
+            self.group.set_named_target("low_pose")
+            self.group.go()
+            self.group.stop()
 
 if __name__ == '__main__':
     rospy.init_node('cobot_control')
