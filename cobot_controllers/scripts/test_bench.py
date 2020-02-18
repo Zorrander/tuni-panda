@@ -2,102 +2,55 @@
 
 import sys
 import copy
-import rospy
 import time
-import moveit_commander
-import moveit_msgs.msg
+import rospy
+import actionlib
+
 from math import pi
+import moveit_msgs.msg
+import moveit_commander
+
+from cobot_controllers.msg import Test
 from std_msgs.msg import String, Empty, Float32
 from moveit_commander.conversions import pose_to_list
-from cobot_controllers.msg import Test
-import actionlib
-from franka_gripper.msg import HomingAction, HomingActionGoal, GraspAction, GraspActionGoal, GraspGoal
+
+from control_msgs.msg import GripperCommandActionGoal, GripperCommandGoal, GripperCommand
+from franka_gripper.msg import HomingAction, HomingActionGoal, GraspAction, GraspActionGoal, GraspGoal, MoveActionGoal, MoveGoal
 
 
-class MoveGroupPythonIntefaceTutorial(object):
-    """MoveGroupPythonIntefaceTutorial"""
+class TestBench(object):
     def __init__(self):
-      super(MoveGroupPythonIntefaceTutorial, self).__init__()
-
-      ## BEGIN_SUB_TUTORIAL setup
-      ##
-      ## First initialize `moveit_commander`_ and a `rospy`_ node:
       moveit_commander.roscpp_initialize(sys.argv)
 
-      ## Instantiate a `RobotCommander`_ object. This object is the outer-level interface to
-      ## the robot:
-      robot = moveit_commander.RobotCommander()
-
-      ## Instantiate a `PlanningSceneInterface`_ object.  This object is an interface
-      ## to the world surrounding the robot:
-      scene = moveit_commander.PlanningSceneInterface()
-
-      ## Instantiate a `MoveGroupCommander`_ object.  This object is an interface
-      ## to one group of joints.  In this case the group is the joints in the Panda
-      ## arm so we set ``group_name = panda_arm``. If you are using a different robot,
-      ## you should change this value to the name of your robot arm planning group.
-      ## This interface can be used to plan and execute motions on the Panda:
       group_name = "panda_arm"
-      group = moveit_commander.MoveGroupCommander(group_name)
+      self.robot = moveit_commander.RobotCommander()
+      self.scene = moveit_commander.PlanningSceneInterface()
+      self.group = moveit_commander.MoveGroupCommander(group_name)
 
-      ## We create a `DisplayTrajectory`_ publisher which is used later to publish
-      ## trajectories for RViz to visualize:
-      display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
-                                                     moveit_msgs.msg.DisplayTrajectory,
-                                                     queue_size=20)
-
-      ## END_SUB_TUTORIAL
-
-      ## BEGIN_SUB_TUTORIAL basic_info
-      ##
-      ## Getting Basic Information
-      ## ^^^^^^^^^^^^^^^^^^^^^^^^^
-      # We can get the name of the reference frame for this robot:
-      planning_frame = group.get_planning_frame()
-      print "============ Reference frame: %s" % planning_frame
-
-      # We can also print the name of the end-effector link for this group:
-      eef_link = group.get_end_effector_link()
-      print "============ End effector: %s" % eef_link
-
-      # We can get a list of all the groups in the robot:
-      group_names = robot.get_group_names()
-      print "============ Robot Groups:", robot.get_group_names()
-
-      # Sometimes for debugging it is useful to print the entire state of the
-      # robot:
-      print "============ Printing robot state"
-      print robot.get_current_state()
-      print ""
-      ## END_SUB_TUTORIAL
-
-      # Misc variables
-      self.box_name = ''
-      self.robot = robot
-      self.scene = scene
-      self.group = group
-      self.display_trajectory_publisher = display_trajectory_publisher
-      self.planning_frame = planning_frame
-      self.eef_link = eef_link
-      self.group_names = group_names
-
+      self.x_test_sub = rospy.Subscriber("/x_test", Float32, self.test_x)
       self.start_sub = rospy.Subscriber("/test_bench", Test, self.routine)
-      self.homing_sub = rospy.Subscriber("/homing_cmd", Empty, self.release)
+      self.homing_sub = rospy.Subscriber("/homing_cmd", Empty, self.homing)
       self.approach_sub = rospy.Subscriber("/approach_cmd", Empty, self.approach)
       self.height_test_sub = rospy.Subscriber("/height_test", Float32, self.test_height)
+
+      self.open_gripper_pub = rospy.Publisher("/franka_gripper/move/goal", MoveActionGoal, queue_size=10)
+      self.gripper_grasp_client = rospy.Publisher('/franka_gripper/grasp/goal', GraspActionGoal, queue_size=10)
+      self.generic_grasp_client =  rospy.Publisher('/franka_gripper/gripper_action/goal', GripperCommandActionGoal, queue_size=10)
+
       self.gripper_homing_client = actionlib.SimpleActionClient('/franka_gripper/homing', HomingAction)
       self.gripper_homing_client.wait_for_server()
-      self.gripper_grasp_client = rospy.Publisher('/franka_gripper/grasp/goal', GraspActionGoal, queue_size=10)
-      print("Gripper connected")
 
-    def release(self, msg):
+    def homing(self, msg):
         goal = HomingActionGoal(goal={})
-        # Sends the goal to the action server.
         self.gripper_homing_client.send_goal(goal)
-        # Waits for the server to finish performing the action.
         self.gripper_homing_client.wait_for_result()
-        # Prints out the result of executing the action
-        return self.gripper_homing_client.get_result()
+        self.gripper_homing_client.publish(goal)
+
+    def release(self):
+        gripper_goal = MoveGoal()
+        gripper_goal.speed = 20.0
+        gripper_goal.width = 0.08
+        self.open_gripper_pub.publish(MoveActionGoal(goal=gripper_goal))
 
     def grasp(self, width, force):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
@@ -110,99 +63,104 @@ class MoveGroupPythonIntefaceTutorial(object):
         grasp_msg = GraspActionGoal(goal=grasp_goal)
         self.gripper_grasp_client.publish(grasp_msg)
 
+    def grasp2(self, width, force):
+        ''' width, epsilon_inner, epsilon_outer, speed, force '''
+        grasp_goal = GripperCommandGoal()
+        grasp_goal.command.position = float(width)
+        grasp_goal.command.max_effort = float(force)
+        grasp_msg = GripperCommandActionGoal(goal=grasp_goal)
+        self.generic_grasp_client.publish(grasp_msg)
+
     def test_height(self, msg):
-        value = -msg.data/100
+        value = -msg.data
         self.vertical_move(value)
 
+    def test_x(self, msg):
+        value = msg.data
+        self.horizontal_move(value)
+
+    def horizontal_move(self, value):
+        next_point = self.group.get_current_pose().pose
+        next_point.position.x += float(value)/100
+        self.move_group(next_point)
+        self.clear_group()
+
     def vertical_move(self, value):
-        wpose = self.group.get_current_pose().pose
-        next_point = wpose
-        next_point.position.z += value
-        self.group.set_pose_target(next_point)
-        plan = self.group.go(wait=True)
-        # Calling `stop()` ensures that there is no residual movement
+        next_point = self.group.get_current_pose().pose
+        next_point.position.z += value/100
+        self.move_group(next_point)
+        self.clear_group()
+
+    def approach(self, msg):
+        self.group.set_max_velocity_scaling_factor(0.75)
+        joint_goal = self.group.get_current_joint_values()
+        joint_goal[0] = -0.000190902556141577
+        joint_goal[1] = -0.6355551061881216
+        joint_goal[2] = 0.0005800443025828713
+        joint_goal[3] = -2.6969856774848804
+        joint_goal[4] = 7.176671650806756e-05
+        joint_goal[5] = 2.0608427823384603
+        joint_goal[6] = 0.7847883398630692
+        self.group.go(joint_goal, wait=True)
+        self.clear_group()
+
+    def move_group(self, target):
+        self.group.set_pose_target(target)
+        self.group.go(wait=True)
+
+    def clear_group(self):
         self.group.stop()
         self.group.clear_pose_targets()
 
-    def approach(self, msg):
-        #wpose = self.group.get_current_pose().pose
-        joint_goal = self.group.get_current_joint_values()
-        joint_goal[0] = 0
-        joint_goal[1] = 0
-        joint_goal[2] = 0
-        joint_goal[3] = -pi/1.5
-        joint_goal[4] = 0
-        joint_goal[5] = pi/1.5
-        joint_goal[6] = pi/4
-        self.group.go(joint_goal, wait=True)
-
-        # Calling ``stop()`` ensures that there is no residual movement
-        self.group.stop()
-
-
     def routine(self, msg):
-    #def routine(self):
         '''
-        Make a chopstick go through for points corresponding to the 4 spaces between one's fingers.
         '''
         print("=============================================")
         print()
         print("*****            TEST BENCH             *****")
         print()
-        width = msg.width/100
-        force = msg.force
+        width = msg.width/100  # cm
+        force = msg.force  # N
         reps = msg.reps
-        #width = 0.02
-        #force = 20.0
-        #reps = 1
-
+        sets = msg.sets
+        h_interval = msg.h_interval
+        v_interval = msg.v_interval
         print("Desired width: {}m".format(width))
         print("Desired force: {}N".format(force))
         print("Desired repetitions: {}".format(reps))
+        print("Desired sets: {}".format(sets))
+        print("Desired h_interval: {}m".format(h_interval))
+        print("Desired v_interval: {}m".format(v_interval))
         print()
-        self.group.remember_joint_values("low_pose")
         print("=============================================")
-        for rep in range(0, reps-1):
-            self.grasp(width, force)
-            time.sleep(2)
-            self.approach({})
-            time.sleep(2)
-            #self.vertical_move(-0.13)
-            self.group.set_named_target("low_pose")
-            self.group.go()
-            self.group.stop()
-            self.release({})
-            self.approach({})
-            time.sleep(2)
-            self.group.set_named_target("low_pose")
-            self.group.go()
-            self.group.stop()
+        for set in range(0, sets):
+            print("Horizontal_move")
+            for rep in range(0, reps):
+                self.group.remember_joint_values("low_pose")
+                self.grasp2(width, force)
+                time.sleep(1)
+                self.approach({})
+                time.sleep(1)
+                #self.vertical_move(-0.13)
+                self.group.set_named_target("low_pose")
+                self.group.go()
+                self.group.stop()
+                self.release()
+                time.sleep(1)
+                self.vertical_move(-10)
+                #self.homing({})
+                self.group.set_named_target("low_pose")
+                self.group.go()
+                self.group.stop()
+                if (rep<reps-1):
+                    self.horizontal_move(h_interval)
+            if (set<sets-1):
+                self.horizontal_move(-(reps-1)*h_interval)
+                self.vertical_move(v_interval)
+            else:
+                self.approach({})
 
 if __name__ == '__main__':
     rospy.init_node('cobot_control')
-    test = MoveGroupPythonIntefaceTutorial()
+    test = TestBench()
     rospy.spin()
-    #test.routine()
-
-
-
-'''
-rostopic pub /franka_grippegrasp/goal franka_gripper/GraspngActionGoal "header:
-  seq: 0
-  stamp:
-    secs: 0
-    nsecs: 0
-  frame_id: ''
-goal_id:
-  stamp:
-    secs: 0
-    nsecs: 0
-  id: ''
-goal:
-  width: 0.02
-  epsilon:
-    inner: 0.01
-    outer: 0.01
-  speed: 50.0
-  force: 10.0"
-'''
