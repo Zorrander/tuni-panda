@@ -15,7 +15,7 @@
     <include file="$(find cobot_vision)/launch/tag_detector.launch"/>
 
     <include file="$(find cobot_controllers)/launch/moveit_cartesian.launch"/>
-
+    <include file="$(find cobot_controllers)/launch/moveit_joint_space.launch"/>
     <!--
     <node name="cobot_control" type="basic_control.py" pkg="cobot_control" output="screen" />
 

@@ -25,4 +25,5 @@ def error_recovery_client(state):
 if __name__ == '__main__':
     rospy.init_node('cobot_error_recovery')
     rospy.Subscriber("/franka_state_controller/franka_states", FrankaState, error_recovery_client)
+    recovery_pub = rospy.Publisher("/franka_control/error_recovery/goal", ErrorRecoveryActionGoal, queue_size=10)
     rospy.spin()
