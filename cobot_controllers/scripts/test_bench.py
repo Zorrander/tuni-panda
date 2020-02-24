@@ -101,6 +101,12 @@ class TestBench(object):
         self.move_group(next_point)
         self.clear_group()
 
+    def horizontal_move2(self, first_pose, value, rep):
+        next_point = first_pose
+        next_point.position.x += (float(value)/100)*rep
+        self.move_group(next_point)
+        self.clear_group()
+
     def vertical_move(self, value):
         if self.carry_on_routine:
             next_point = self.group.get_current_pose().pose
@@ -109,7 +115,16 @@ class TestBench(object):
             self.clear_group()
         else:
             raise ValueError
-            
+
+    def vertical_move2(self, first_pose, value, set):
+        if self.carry_on_routine:
+            next_point = first_pose
+            next_point.position.z += (value/100)*set
+            self.move_group(next_point)
+            self.clear_group()
+        else:
+            raise ValueError
+
     def place(self):
         if self.carry_on_routine:
             self.group.set_named_target("low_pose")
@@ -164,6 +179,7 @@ class TestBench(object):
         print()
         print("=============================================")
         try:
+            first_pose = self.group.get_current_pose().pose
             for set in range(0, sets):
                 print("Horizontal_move")
                 for rep in range(0, reps):
@@ -175,15 +191,14 @@ class TestBench(object):
                     #self.vertical_move(-0.13)
                     self.place()
                     self.release()
-                    time.sleep(1)
-                    self.vertical_move(-10)
-                    #self.homing({})
-                    self.place()
+                    time.sleep(0.5)
+                    #self.approach({})
+                    #self.place()
                     if (rep<reps-1):
-                        self.horizontal_move(h_interval)
+                        self.horizontal_move2(first_pose, h_interval, rep)
                 if (set<sets-1):
-                    self.horizontal_move(-(reps-1)*h_interval)
-                    self.vertical_move(v_interval)
+                    self.horizontal_move2(first_pose, -(reps-1)*h_interval, set)
+                    self.vertical_move2(first_pose, v_interval, rep)
                 else:
                     self.approach({})
         except:
