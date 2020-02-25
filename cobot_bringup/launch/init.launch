@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-
-<launch>
-  <include file="$(find cobot_control)/launch/control.launch"/>
-
-  <include file="$(find sem_server_ros)/launch/ros_semantic_server.launch" />
-
-</launch>

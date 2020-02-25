@@ -5,7 +5,10 @@ find_package(catkin REQUIRED COMPONENTS
     rospy
     std_msgs
     message_generation
+    actionlib_msgs
 )
+
+catkin_python_setup()
 
 add_message_files(
   FILES
@@ -17,10 +20,16 @@ add_service_files(
   ReachTag.srv
 )
 
-generate_messages(DEPENDENCIES std_msgs)
+add_action_files(
+  DIRECTORY action
+  FILES PickAndPlace.action
+)
+
+generate_messages(DEPENDENCIES std_msgs actionlib_msgs)
 
 catkin_package(
    LIBRARIES cobot_controllers
    CATKIN_DEPENDS
-      message_runtime
+   message_runtime
+   actionlib_msgs
 )

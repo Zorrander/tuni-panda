@@ -28,18 +28,18 @@ class Arm(object):
         except:
             pass
 
-    def go_to_cartesian_goal(self, position):
+    def go_to_cartesian_goal(self, pose):
         try:
             next_point = self.group.get_current_pose().pose
-            next_point.position.x = position.x
-            next_point.position.y = position.y
-            next_point.position.z = position.z
+            next_point.position.x = pose.position.x
+            next_point.position.y = pose.position.y
+            next_point.position.z = pose.position.z
             self.group.set_pose_target(next_point)
             plan = self.group.go(wait=True)
             self.group.stop()
             self.group.clear_pose_targets()
         except:
-            pass
+            print("Error in go_to_cartesian_goal")
 
     def go_to_joint_space_goal(self, joints_goal):
         arm_joints = self.group.get_current_joint_values()

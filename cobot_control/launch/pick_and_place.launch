@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+
+    <node name="cobot_control" type="pick_and_place_server.py" pkg="cobot_control" output="screen" />
+
+
+</launch>
