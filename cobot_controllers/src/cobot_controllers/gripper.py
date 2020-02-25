@@ -1,7 +1,7 @@
 import rospy
 import actionlib
 import franka_gripper.msg
-
+from control_msgs.msg import GripperCommandActionGoal, GripperCommandGoal, GripperCommand
 
 class Gripper():
 
@@ -29,27 +29,31 @@ class Gripper():
         return self.homing_client.get_result()
 
     def move(self, speed=20.0, width=0.08):
-        gripper_goal = franka_gripper.msg.MoveGoal()
-        gripper_goal.speed = speed
-        gripper_goal.width = width
-        goal = franka_gripper.msg.MoveActionGoal(goal=gripper_goal)
-        self.move_client.send_goal(goal)
+        self.move_client.send_goal(
+            franka_gripper.msg.MoveGoal(
+                width,
+                speed
+            )
+        )
         self.move_client.wait_for_result()
         return self.move_client.get_result()
 
-    def stop():
+    def stop(self):
         pass
 
     def grasp(self, force, width, speed=20.0, epsilon_inner=0.001, epsilon_outer=0.001):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
-        grasp_goal = franka_gripper.msg.GraspGoal()
-        grasp_goal.force = force
-        grasp_goal.width = width
-        grasp_goal.speed = speed
-        grasp_goal.epsilon.inner = epsilon_inner
-        grasp_goal.epsilon.outer = epsilon_outer
-        grasp_msg = franka_gripper.msg.GraspActionGoal(goal=grasp_goal)
-        self.grasp_client.send_goal(grasp_msg)
+        self.grasp_client.send_goal(
+            franka_gripper.msg.GraspGoal(
+                width,
+                franka_gripper.msg.GraspEpsilon(
+                    epsilon_inner,
+                    epsilon_outer
+                ),
+                speed,
+                force
+            )
+        )
         self.grasp_client.wait_for_result()
         return self.grasp_client.get_result()
 

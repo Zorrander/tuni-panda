@@ -24,4 +24,4 @@
     <node name="cobot_error_recovery" type="recover_error.py" pkg="cobot_control" output="screen" />
     -->
 
-</launch>
+    </launch>

@@ -12,19 +12,20 @@ find_package(catkin REQUIRED COMPONENTS
     pluginlib
     franka_hw
     roscpp
+    rospy
     std_msgs
     message_generation
 )
 
-
-add_message_files(
-  FILES
-  Test.msg
-)
+catkin_python_setup()
 
 add_service_files(
   FILES
-  ReachTag.srv
+  ReachJointPose.srv
+  ReachCartesianPose.srv
+  ReachNamedTarget.srv
+  MoveGripper.srv
+  Grasp.srv
 )
 
 generate_messages(DEPENDENCIES std_msgs)

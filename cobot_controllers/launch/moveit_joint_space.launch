@@ -1,7 +1,0 @@
-<?xml version="1.0" ?>
-
-<launch>
-
-  <node name="cobot_joint_control" type="moveit_joint_space.py" pkg="cobot_controllers" output="screen" />
-
-</launch>
