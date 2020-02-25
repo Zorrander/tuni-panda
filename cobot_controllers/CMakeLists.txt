@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
+    geometry_msgs
     message_generation
 )
 
@@ -23,12 +24,13 @@ add_service_files(
   FILES
   ReachJointPose.srv
   ReachCartesianPose.srv
-  ReachNamedTarget.srv
+  NamedTarget.srv
+  RobotSpeed.srv
   MoveGripper.srv
   Grasp.srv
 )
 
-generate_messages(DEPENDENCIES std_msgs)
+generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
 catkin_package(
    LIBRARIES cobot_controllers

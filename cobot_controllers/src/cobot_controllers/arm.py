@@ -23,6 +23,8 @@ class Arm(object):
         try:
             self.group.set_named_target(target_name)
             self.group.go()
+            self.group.stop()
+            self.group.clear_pose_targets()
         except:
             pass
 
@@ -44,4 +46,5 @@ class Arm(object):
         for i in range(0, len(joints_goal)):
             arm_joints[i] = joints_goal[i]
         self.group.go(arm_joints, wait=True)
-        self.clear_group()
+        self.group.stop()
+        self.group.clear_pose_targets()
