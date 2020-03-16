@@ -36,56 +36,18 @@ class TestBench(object):
       self.approach_sub = rospy.Subscriber("/approach_cmd", Empty, self.approach)
       self.height_test_sub = rospy.Subscriber("/height_test", Float32, self.test_height)
 
-      self.open_gripper_pub = rospy.Publisher("/franka_gripper/move/goal", MoveActionGoal, queue_size=10)
-      self.gripper_grasp_client = rospy.Publisher('/franka_gripper/grasp/goal', GraspActionGoal, queue_size=10)
       self.recovery_pub = rospy.Publisher("/franka_control/error_recovery/goal", ErrorRecoveryActionGoal, queue_size=10)
-      self.generic_grasp_client =  rospy.Publisher('/franka_gripper/gripper_action/goal', GripperCommandActionGoal, queue_size=10)
 
       self.gripper_homing_client = actionlib.SimpleActionClient('/franka_gripper/homing', HomingAction)
       self.gripper_homing_client.wait_for_server()
 
       self.carry_on_routine = True
 
-    def homing(self, msg):
-        goal = HomingActionGoal(goal={})
-        self.gripper_homing_client.send_goal(goal)
-        self.gripper_homing_client.wait_for_result()
-        self.gripper_homing_client.publish(goal)
-
-    def release(self):
-        gripper_goal = MoveGoal()
-        gripper_goal.speed = 20.0
-        gripper_goal.width = 0.08
-        self.open_gripper_pub.publish(MoveActionGoal(goal=gripper_goal))
-        if not self.carry_on_routine:
-            raise ValueError
-
     def reset(self, msg):
         self.carry_on_routine = True
         recovery_goal = ErrorRecoveryActionGoal()
         self.recovery_pub.publish(recovery_goal)
 
-    def grasp(self, width, force):
-        ''' width, epsilon_inner, epsilon_outer, speed, force '''
-        if self.carry_on_routine:
-            grasp_goal = GraspGoal()
-            grasp_goal.width = float(width)
-            grasp_goal.epsilon.inner = 0.005
-            grasp_goal.epsilon.outer = 0.005
-            grasp_goal.speed = 20.0
-            grasp_goal.force = float(force)
-            grasp_msg = GraspActionGoal(goal=grasp_goal)
-            self.gripper_grasp_client.publish(grasp_msg)
-        else:
-            raise ValueError
-
-    def grasp2(self, width, force):
-        ''' width, epsilon_inner, epsilon_outer, speed, force '''
-        grasp_goal = GripperCommandGoal()
-        grasp_goal.command.position = float(width)
-        grasp_goal.command.max_effort = float(force)
-        grasp_msg = GripperCommandActionGoal(goal=grasp_goal)
-        self.generic_grasp_client.publish(grasp_msg)
 
     def test_height(self, msg):
         value = -msg.data
@@ -117,7 +79,11 @@ class TestBench(object):
         else:
             raise ValueError
 
+<<<<<<< HEAD:cobot_controllers/scripts/test_bench.py
     def vertical_move2(self, first_pose, value, set):
+=======
+    def place(self):
+>>>>>>> devel:cobot_bringup/scripts/test_bench.py
         if self.carry_on_routine:
             next_point = first_pose
             next_point.position.z += (value/100)*set
@@ -205,6 +171,6 @@ class TestBench(object):
 
 
 if __name__ == '__main__':
-    rospy.init_node('cobot_control')
+    rospy.init_node('test_bench')
     test = TestBench()
     rospy.spin()

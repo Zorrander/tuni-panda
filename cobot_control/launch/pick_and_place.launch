@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<launch>
+    <include file="$(find cobot_vision)/launch/cobot_vision.launch"/>
+    <!--
+    <include file="$(find sem_server_ros)/launch/ros_semantic_server.launch" >
+    -->
+    <include file="$(find cobot_controllers)/launch/arm.launch"/>
+    <include file="$(find cobot_controllers)/launch/gripper.launch"/>
+
+    <node name="cobot_control" type="pick_and_place_server.py" pkg="cobot_control" output="screen" />
+
+</launch>

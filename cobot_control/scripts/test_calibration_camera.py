@@ -1,22 +1,33 @@
 #!/usr/bin/env python
 
+import time
 import rospy
-from std_msgs.msg import Int8, Empty
-from std_srvs.srv import Trigger
-from cobot_controllers.srv import ReachTag
+from cobot_controllers.srv import NamedTarget, ReachCartesianPose
+from cobot_vision.srv import TagPose
 
 def test_calibration_camera():
-    rospy.wait_for_service('reach_tag')
-    rospy.wait_for_service('move_start')
-    go_to_tag = rospy.ServiceProxy('reach_tag', ReachTag)
-    reset_order = rospy.ServiceProxy('move_start', Trigger)
+    rospy.wait_for_service('go_to_cartesian_goal')
+    rospy.wait_for_service('move_to')
+    rospy.wait_for_service('calculate_tag_pose')
+    tag_detector = rospy.ServiceProxy('calculate_tag_pose', TagPose)
+    move_to_pose = rospy.ServiceProxy('go_to_cartesian_goal', ReachCartesianPose)
+    move_to_named_target = rospy.ServiceProxy('move_to', NamedTarget)
     tags = [18, 20, 22, 16, 24]
     calibrated = True
     try:
-        reset_order()
+        print("============ Press `Enter` to go through the test tags ========== ")
+        raw_input()
+        move_to_named_target("ready")
+        time.sleep(1)
         for tag in tags:
-            calibrated = go_to_tag(tag).success
-        reset_order()
+            print("going to tag {} ".format(tag))
+            tag_pose_resp = tag_detector(tag)
+            tag_pose_resp.tag_pose.position.z += 0.20
+            print("Pose: {} ".format(tag_pose_resp))
+            calibrated = move_to_pose(tag_pose_resp.tag_pose)
+            print("Result: {}".format(calibrated.success))
+            time.sleep(1)
+        move_to_named_target("ready")
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
 
