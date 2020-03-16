@@ -37,6 +37,7 @@ def cmd_received(cmd_msg, planner):
         dispatchable = planner.create_plan("Cranfield_Assembly")
         # dispatch it
         if dispatchable:
+            print("Dispatching")
             # Initialize variables
             available_steps = planner.find_available_steps()
             while available_steps:
@@ -47,6 +48,7 @@ def cmd_received(cmd_msg, planner):
                 # Apply a timestamp to it
                 planner.apply_timestamp(action)
                 # Update available steps
+                available_steps = planner.find_available_steps()
 
     except:
         pass

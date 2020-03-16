@@ -15,10 +15,25 @@ class JenaSempyPlanner:
             print("Error during planning")
 
     def init_time(self):
-        pass
+        try:
+            return self.jena_planner.init_time()
+        except:
+            print("Could not initialize time")
 
     def find_available_steps(self):
-        pass
+        try:
+            return self.jena_planner.find_available_steps()
+        except:
+            print("Could not find next steps")
+
+    def find_next_action(self):
+        try:
+            return self.jena_planner.find_next_action()
+        except:
+            print("Failed to compute next action")
 
     def apply_timestamp(self, action):
-        pass
+        try:
+            self.jena_planner.apply_timestamp(action)
+        except:
+            print("Something went wrong with the graph timebounds")
