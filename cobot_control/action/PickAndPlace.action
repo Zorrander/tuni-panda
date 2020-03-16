@@ -1,6 +1,0 @@
-string object_name
-string place_name
----
-string step
----
-bool success

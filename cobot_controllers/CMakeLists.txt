@@ -12,25 +12,22 @@ find_package(catkin REQUIRED COMPONENTS
     pluginlib
     franka_hw
     roscpp
-    rospy
     std_msgs
-    geometry_msgs
     message_generation
 )
 
-catkin_python_setup()
+
+add_message_files(
+  FILES
+  Test.msg
+)
 
 add_service_files(
   FILES
-  ReachJointPose.srv
-  ReachCartesianPose.srv
-  NamedTarget.srv
-  RobotSpeed.srv
-  MoveGripper.srv
-  Grasp.srv
+  ReachTag.srv
 )
 
-generate_messages(DEPENDENCIES std_msgs geometry_msgs)
+generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
    LIBRARIES cobot_controllers

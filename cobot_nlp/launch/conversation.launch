@@ -1,0 +1,10 @@
+<launch>
+
+
+  <node name="speech_to_text_input" pkg="cobot_nlp" type="speech_to_text_node.py" output="screen"/>
+
+  <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py" output="screen"/>
+  <node name="text_to_speech" pkg="cobot_nlp" type="text_to_speech_node.py" output="screen"/>
+
+
+</launch>

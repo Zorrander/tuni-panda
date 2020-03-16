@@ -11,6 +11,7 @@ catkin_python_setup()
 
 add_message_files(
    FILES
+   Command.msg
    DatatypeProperty.msg
    Individual.msg
    ObjectProperty.msg
