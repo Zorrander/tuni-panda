@@ -12,7 +12,8 @@ cogtuni = "http://cognitive.robotics.tut"
 class CRUDServices(unittest.TestCase):
     ''' Create, Read, Update, Delete '''
 
-    def test_create_sem(self):
+    def test_match_sem(self):
+        ''' select '''
         rospy.wait_for_service('create_sem')
         create_sem = rospy.ServiceProxy('create_sem', CreateSem)
         resp = create_sem(URI(cogtuni, "TestClass"), URI(rdf, "type"), URI(owl, "Class"))
@@ -22,6 +23,7 @@ class CRUDServices(unittest.TestCase):
         self.assertTrue(test, "Triple are not added correctly.")
 
     def test_read_sem(self):
+        ''' describe operation '''
         rospy.wait_for_service('read_sem')
         read_sem = rospy.ServiceProxy('read_sem', ReadSem)
         subject = "FrankaDictionary"
@@ -32,8 +34,16 @@ class CRUDServices(unittest.TestCase):
                 test = True
         self.assertTrue(test, "Ontologies cannot be read correctly")
 
-    '''
-    def test_update_sem(self):
+    def test_test_sem(self):
+        ''' ask operation '''
+        pass
+        
+    def test_construct_sem(self):
+        ''' construct operation '''
+        pass
+
+    def test_add_sem(self):
+        '''insert operation'''
         rospy.wait_for_service('update_sem')
         update_sem = rospy.ServiceProxy('update_sem', UpdateSem)
         subject = "FrankaDictionary"
@@ -41,11 +51,12 @@ class CRUDServices(unittest.TestCase):
         return True
 
     def test_delete_sem(self):
+        '''delete operation'''
         rospy.wait_for_service('delete_sem')
         update_sem = rospy.ServiceProxy('delete_sem', DeleteSem)
         resp = update_sem()
         return True
-    '''
+
 
 
 if __name__ == '__main__':

@@ -7,7 +7,10 @@ project(cobot_nlp)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+    rospy
+    sound_play
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -101,7 +104,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES cobot_nlp
-#  CATKIN_DEPENDS other_catkin_pkg
+   CATKIN_DEPENDS rospy sound_play
 #  DEPENDS system_lib
 )
 

@@ -1,6 +1,9 @@
 <launch>
 
   <node name="sem_server_node" pkg="sem_server_ros" type="sem_server.py" output="screen" />
-  <node name="reasoner" pkg="sem_server_ros" type="reasoner.py" output="screen" />
 
+  <!--
+    <node name="reasoner" pkg="sem_server_ros" type="reasoner.py" output="screen" />
+  -->
+  
 </launch>

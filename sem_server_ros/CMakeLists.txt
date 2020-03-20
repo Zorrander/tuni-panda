@@ -21,10 +21,10 @@ add_message_files(
 
 add_service_files(
    FILES
-   CreateSem.srv
-   ReadSem.srv
-   UpdateSem.srv
-   DeleteSem.srv
+   Ask.srv
+   Describe.srv
+   Select.srv
+   Update.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -43,5 +43,5 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sem_server_ros
    CATKIN_DEPENDS rospy std_msgs message_runtime
-#  DEPENDS system_lib
+#  DEPENDS jena_sempy
 )

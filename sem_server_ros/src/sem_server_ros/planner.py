@@ -16,7 +16,7 @@ class JenaSempyPlanner:
 
     def init_time(self):
         try:
-            return self.jena_planner.init_time()
+            self.jena_planner.init_time()
         except:
             print("Could not initialize time")
 
@@ -37,3 +37,6 @@ class JenaSempyPlanner:
             self.jena_planner.apply_timestamp(action)
         except:
             print("Something went wrong with the graph timebounds")
+
+    def print_plan(self):
+        self.jena_planner.print_plan()

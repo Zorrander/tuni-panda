@@ -1,3 +1,3 @@
-URI subject
-URI predicate
-URI object
+string subject
+string predicate
+string object
