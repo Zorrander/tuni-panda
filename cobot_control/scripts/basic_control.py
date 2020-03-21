@@ -1,32 +1,64 @@
 #!/usr/bin/env python
 
 import rospy
-from controller_manager_msgs.srv import SwitchController
-from std_msgs.msg import Empty
 
+from sem_server_ros.planner import JenaSempyPlanner
+from sem_server_ros.server_com import ROSFusekiServer
 
-def switch_controllers(strictness=1):
-    rospy.wait_for_service('/controller_manager/switch_controller')
+from sem_server_ros.msg import Command
+from std_msgs.msg import String
+
+speak = rospy.Publisher('/speech_output', String, queue_size=10)
+find_symbol = rospy.ServiceProxy('read_sem', ReadSem)
+
+def check_manipulation(symbol):
+    symbol_sem = find_symbol(symbol)
+    if not symbol_sem.result:
+        speak.publish("I cannot understand {}".format(symbol))
+
+def check_manipulation_preconditions(object_symbol):
+    target_sem = symbol_syntax_checking(object_symbol)
+    object_seen = False
+    for triple in target_sem:
+        if triple.predicate == "rdf:type" and triple.object == cmd_msg.target:
+            object_seen = True
+    if not object_seen:
+        speak.publish("I cannot see a {}".format(cmd_msg.target))
+    return object_seen
+
+def cmd_received(cmd_msg, planner):
     try:
-        print(rospy.get_param("running_controller"))
-        switcher = rospy.ServiceProxy('/controller_manager/switch_controller', SwitchController)
-        if rospy.get_param("running_controller")=='test_controller':
-            switcher(['force_example_controller'], ['test_controller'], strictness)
-            rospy.set_param('running_controller', 'force_example_controller')
-        else:
-            switcher(['test_controller'], ['force_example_controller'], strictness)
-            rospy.set_param('running_controller', 'test_controller')
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+        print("Action: {} --- Target:{}".format(cmd_msg.action, cmd_msg.target))
+        # Check that the manipulation is known
+        check_manipulation(cmd_msg.action)
+        # Verify if the object is valid
+        #check_manipulation_preconditions(cmd_msg.target):
+        # establish a plan
+        planner.init_time()
+        planner.create_plan("Cranfield_Assembly")
+        print("Dispatching")
+        # Initialize variables
+        available_steps = planner.find_available_steps()
+        while available_steps:
+            planner.print_plan()
+            # Pick an event to be performed
+            action = planner.find_next_action()
+            # Wait for it to be performed
+            # Apply a timestamp to it
+            planner.apply_timestamp(action)
+            # Update available steps
+            available_steps = planner.find_available_steps()
+        print("{} OVER".format(cmd_msg))
+    except:
+        pass
 
-def switch(vide):
-    switch_controllers()
+if __name__ == "__main__":
+    rospy.init_node('reasoner')
+    planner = JenaSempyPlanner()
+    # Wait for everything to turn on
+    rospy.wait_for_service('read_sem')
+    print "Robot ready"
+    rospy.Subscriber("/command", Command, cmd_received, (planner))
 
-def wait_for_commands():
-    rospy.set_param('running_controller', 'force_example_controller')
-    rospy.Subscriber("switch_controllers", Empty, switch)
+    # subscribe cmd topic
     rospy.spin()
-
-if __name__ == '__main__':
-    rospy.init_node('cobot_control')
-    wait_for_commands()

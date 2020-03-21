@@ -16,9 +16,9 @@
 
     <include file="$(find cobot_controllers)/launch/moveit_cartesian.launch"/>
 
-    <!--
-    <node name="cobot_control" type="basic_control.py" pkg="cobot_control" output="screen" />
 
+    <node name="cobot_control" type="basic_control.py" pkg="cobot_control" output="screen" />
+    <!--
     <node name="cobot_reset" type="move_start.py" pkg="cobot_control" output="screen" />
 
     <node name="cobot_error_recovery" type="recover_error.py" pkg="cobot_control" output="screen" />
