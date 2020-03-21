@@ -16,8 +16,28 @@ def select_data(req):
 
     '''
     try:
-        pass
-        # list_triples = self.jena_fuseki_server.select_operation()
+        subject =   "ns:"+req.where.subject if req.where.subject else "?s"
+        predicate = "rdf:"+req.where.predicate if req.where.predicate else "?p"
+        object =    "ns:"+req.where.object if req.where.object else "?o"
+
+        query = """
+            PREFIX ns: <http://www.example.org/ns#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            SELECT *
+            WHERE {
+                """ + subject + """ """ + predicate + """ """ + object + """ .
+            }
+        """
+        list_triples = jena_fuseki_server.select_operation(query)
+        resp=[]
+        for triple in list_triples:
+                new_triple=Triple()
+                new_triple.subject= triple["s"]["value"].encode("ascii") if 's' in triple else ""
+                new_triple.predicate = triple["o"]["value"].encode("ascii") if 'o' in triple else ""
+                new_triple.object = triple["p"]["value"].encode("ascii") if 'p' in triple else ""
+                resp.append(new_triple)
+        print(SelectResponse(resp))
+        return SelectResponse(resp)
     except Exception as e:
         pass
 
@@ -28,8 +48,17 @@ def add_data(req):
     bool success
     '''
     try:
-        pass
-        # self.jena_fuseki_server.update_operation()
+        subject =   "ns:"+req.update_triple.subject if req.update_triple.subject else "?s"
+        predicate = "ns:"+req.update_triple.predicate if req.update_triple.predicate else "?p"
+        object =    "ns:"+req.update_triple.object if req.update_triple.object else "?o"
+        query ="""
+            PREFIX ns: <http://www.example.org/ns#>
+            INSERT DATA {
+                """ + subject + """ """ + predicate + """ """ + object + """ .
+            }
+        """
+        jena_fuseki_server.update_operation(query)
+        return UpdateResponse(True)
     except Exception as e:
         pass
 
@@ -40,8 +69,17 @@ def remove_data(req):
     bool success
     '''
     try:
-        pass
-        # self.jena_fuseki_server.update_operation()
+        subject =   "ns:"+req.update_triple.subject if req.update_triple.subject else "?s"
+        predicate = "ns:"+req.update_triple.predicate if req.update_triple.predicate else "?p"
+        object =    "ns:"+req.update_triple.object if req.update_triple.object else "?o"
+        query ="""
+            PREFIX ns: <http://www.example.org/ns#>
+            DELETE DATA {
+                """ + subject + """ """ + predicate + """ """ + object + """ .
+            }
+        """
+        jena_fuseki_server.update_operation(query)
+        return UpdateResponse(True)
     except Exception as e:
         pass
 
@@ -51,7 +89,6 @@ def test_data(req):
     ---
     bool veracity
     '''
-    print(req)
     subject =   "ns:"+req.triple.subject if req.triple.subject else "?s"
     predicate = "ns:"+req.triple.predicate if req.triple.predicate else "?p"
     object =    "ns:"+req.triple.object if req.triple.object else "?o"
@@ -62,7 +99,6 @@ def test_data(req):
               """ + subject + """ """ + predicate + """ """ + object + """ .
             }
         """
-        print(query)
         found = jena_fuseki_server.ask_operation(query)
         return AskResponse(found)
     except Exception as e:
@@ -102,10 +138,10 @@ def read_data(req):
 
 if __name__ == "__main__":
     rospy.init_node('sem_server_node')
-    # s = rospy.Service('add_data',    Update,   add_data)
-    # s = rospy.Service('select_data', Select,   select_data)
+    s = rospy.Service('add_data',    Update,   add_data)
+    s = rospy.Service('select_data', Select,   select_data)
     s = rospy.Service('read_data',   Describe, read_data)
     s = rospy.Service('test_data',   Ask,      test_data)
-    # s = rospy.Service('remove_data', Update,   remove_data)
+    s = rospy.Service('remove_data', Update,   remove_data)
     print "Ready to interact with the knowledge base."
     rospy.spin()
