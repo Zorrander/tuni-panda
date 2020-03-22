@@ -36,56 +36,18 @@ class TestBench(object):
       self.approach_sub = rospy.Subscriber("/approach_cmd", Empty, self.approach)
       self.height_test_sub = rospy.Subscriber("/height_test", Float32, self.test_height)
 
-      self.open_gripper_pub = rospy.Publisher("/franka_gripper/move/goal", MoveActionGoal, queue_size=10)
-      self.gripper_grasp_client = rospy.Publisher('/franka_gripper/grasp/goal', GraspActionGoal, queue_size=10)
       self.recovery_pub = rospy.Publisher("/franka_control/error_recovery/goal", ErrorRecoveryActionGoal, queue_size=10)
-      self.generic_grasp_client =  rospy.Publisher('/franka_gripper/gripper_action/goal', GripperCommandActionGoal, queue_size=10)
 
       self.gripper_homing_client = actionlib.SimpleActionClient('/franka_gripper/homing', HomingAction)
       self.gripper_homing_client.wait_for_server()
 
       self.carry_on_routine = True
 
-    def homing(self, msg):
-        goal = HomingActionGoal(goal={})
-        self.gripper_homing_client.send_goal(goal)
-        self.gripper_homing_client.wait_for_result()
-        self.gripper_homing_client.publish(goal)
-
-    def release(self):
-        gripper_goal = MoveGoal()
-        gripper_goal.speed = 20.0
-        gripper_goal.width = 0.08
-        self.open_gripper_pub.publish(MoveActionGoal(goal=gripper_goal))
-        if not self.carry_on_routine:
-            raise ValueError
-
     def reset(self, msg):
         self.carry_on_routine = True
         recovery_goal = ErrorRecoveryActionGoal()
         self.recovery_pub.publish(recovery_goal)
 
-    def grasp(self, width, force):
-        ''' width, epsilon_inner, epsilon_outer, speed, force '''
-        if self.carry_on_routine:
-            grasp_goal = GraspGoal()
-            grasp_goal.width = float(width)
-            grasp_goal.epsilon.inner = 0.005
-            grasp_goal.epsilon.outer = 0.005
-            grasp_goal.speed = 20.0
-            grasp_goal.force = float(force)
-            grasp_msg = GraspActionGoal(goal=grasp_goal)
-            self.gripper_grasp_client.publish(grasp_msg)
-        else:
-            raise ValueError
-
-    def grasp2(self, width, force):
-        ''' width, epsilon_inner, epsilon_outer, speed, force '''
-        grasp_goal = GripperCommandGoal()
-        grasp_goal.command.position = float(width)
-        grasp_goal.command.max_effort = float(force)
-        grasp_msg = GripperCommandActionGoal(goal=grasp_goal)
-        self.generic_grasp_client.publish(grasp_msg)
 
     def test_height(self, msg):
         value = -msg.data
@@ -101,34 +63,18 @@ class TestBench(object):
         self.move_group(next_point)
         self.clear_group()
 
-    def horizontal_move2(self, first_pose, value, rep):
-        next_point = first_pose
-        next_point.position.x += (float(value)/100)*rep
-        self.move_group(next_point)
-        self.clear_group()
-
     def vertical_move(self, value):
         if self.carry_on_routine:
-            print("vertical move")
             next_point = self.group.get_current_pose().pose
-            next_point.position.z += float(value)/100
+            next_point.position.z += value/100
             self.move_group(next_point)
             self.clear_group()
         else:
             raise ValueError
 
-    def vertical_move2(self, first_pose, value, set):
+    def place(self):
         if self.carry_on_routine:
-            next_point = first_pose
-            next_point.position.z += (value/100)*set
-            self.move_group(next_point)
-            self.clear_group()
-        else:
-            raise ValueError
-
-    def place(self, name):
-        if self.carry_on_routine:
-            self.group.set_named_target(name)
+            self.group.set_named_target("low_pose")
             self.group.go()
             self.group.stop()
         else:
@@ -179,25 +125,27 @@ class TestBench(object):
         print("Desired v_interval: {}m".format(v_interval))
         print()
         print("=============================================")
-        self.group.remember_joint_values("first_pose")
-        first_pose = self.group.get_current_pose().pose
         try:
             for set in range(0, sets):
                 print("Horizontal_move")
                 for rep in range(0, reps):
+                    self.group.remember_joint_values("low_pose")
                     self.grasp2(width, force)
                     time.sleep(1)
-                    self.vertical_move(13)
+                    self.approach({})
                     time.sleep(1)
-                    self.vertical_move(-13)
+                    #self.vertical_move(-0.13)
+                    self.place()
                     self.release()
                     time.sleep(1)
+                    self.vertical_move(-10)
+                    #self.homing({})
+                    self.place()
                     if (rep<reps-1):
-                        offset = first_pose.position.x + (h_interval/100)*(rep+1)
-                        self.horizontal_move(offset)
+                        self.horizontal_move(h_interval)
                 if (set<sets-1):
-                    self.place("first_pose")
-                    self.vertical_move2(first_pose, v_interval, set+1)
+                    self.horizontal_move(-(reps-1)*h_interval)
+                    self.vertical_move(v_interval)
                 else:
                     self.approach({})
         except:
@@ -205,6 +153,6 @@ class TestBench(object):
 
 
 if __name__ == '__main__':
-    rospy.init_node('cobot_control')
+    rospy.init_node('test_bench')
     test = TestBench()
     rospy.spin()

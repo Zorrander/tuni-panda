@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+
+  <include file="$(find cobot_vision)/launch/cobot_vision.launch"/>
+
+  <include file="$(find cobot_controllers)/launch/arm.launch"/>
+  <include file="$(find cobot_controllers)/launch/gripper.launch"/>
+
+  <node name="test_calibration_camera" type="test_calibration_camera.py" pkg="cobot_control" output="screen" />
+</launch>

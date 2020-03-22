@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+    <include file="$(find cobot_controllers)/launch/arm.launch"/>
+    <include file="$(find cobot_controllers)/launch/gripper.launch"/>
+
+    <include file="$(find sem_server_ros)/launch/ros_semantic_server.launch"/>
+
+    <node name="semantic_control" type="semantic_control.py" pkg="cobot_control" output="screen" />
+
+</launch>

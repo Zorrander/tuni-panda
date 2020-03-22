@@ -4,14 +4,20 @@ import rospy
 
 from sem_server_ros.planner import JenaSempyPlanner
 from sem_server_ros.server_com import ROSFusekiServer
-from cobot_controllers.semantic_controller import SemanticController
+from cobot_controllers.arm import Arm
+from cobot_controllers.gripper import Gripper
 
 from sem_server_ros.msg import Command, Triple
 from std_msgs.msg import String
 
 speak = rospy.Publisher('/speech_output', String, queue_size=10)
 
-def check_syntax(symbol, sem_server):
+planner = JenaSempyPlanner()
+sem_server = ROSFusekiServer()
+arm = Arm()
+gripper = Gripper()
+
+def check_syntax(symbol):
     triple = Triple()
     triple.subject = symbol
     symbol_sem = sem_server.test_data(action_triple)
@@ -19,7 +25,7 @@ def check_syntax(symbol, sem_server):
         speak.publish("I cannot understand {}".format(symbol))
         raise Exception("I don't know what {} means".format(symbol))
 
-def check_manipulation_preconditions(object_symbol, sem_server):
+def check_manipulation_preconditions(object_symbol):
     check_syntax(object_symbol, sem_server)
     object_seen = False
     target_sem = sem_server.read_data(object_symbol)
@@ -31,7 +37,14 @@ def check_manipulation_preconditions(object_symbol, sem_server):
         raise ("I can't see a {}".format(object_symbol))
     return target_sem
 
-def cmd_received(cmd_msg, planner, sem_server, sem_controller):
+def choose_step(available_steps):
+    ''' Implement different collaboration policies '''
+    return available_steps[0]
+
+def interpret(action_sem, target_sem):
+    pass
+
+def cmd_received(cmd_msg):
     try:
         print("Action: {} --- Target:{}".format(cmd_msg.action, cmd_msg.target))
         # Check that the manipulation is known
@@ -45,9 +58,12 @@ def cmd_received(cmd_msg, planner, sem_server, sem_controller):
         available_steps = planner.find_available_steps()
         while available_steps:
             # Pick an event to be performed
-            action_symbol = planner.find_next_action()
-            action_sem = sem_server.read_data(action_symbol)
-            sem_controller.interpret(action_sem, target_sem)
+            next_step = choose_step(available_steps)
+            next_action = planner.find_next_action(next_step)
+            while next_action:
+                action_sem = sem_server.read_data(next_action)
+                interpret(action_sem, target_sem)
+                next_action = planner.find_next_action(next_step)
             # Apply a timestamp to it
             planner.apply_timestamp(action_symbol)
             # Update available steps
@@ -57,14 +73,7 @@ def cmd_received(cmd_msg, planner, sem_server, sem_controller):
         pass
 
 if __name__ == "__main__":
-    rospy.init_node('basic_control')
-
-    planner = JenaSempyPlanner()
-    sem_server = ROSFusekiServer()
-    sem_controller = SemanticController()
-
-    rospy.Subscriber("/command", Command, cmd_received, (planner, sem_server, sem_controller))
-
+    rospy.init_node('semantic_control')
+    rospy.Subscriber("/command", Command, cmd_received)
     print "Robot ready"
-    # subscribe cmd topic
     rospy.spin()
