@@ -37,7 +37,6 @@ def select_data(req):
             new_triple.predicate = triple["o"]["value"].encode("ascii") if 'o' in triple else ""
             new_triple.object = triple["p"]["value"].encode("ascii") if 'p' in triple else ""
             resp.append(new_triple)
-    print(SelectResponse(resp))
     return SelectResponse(resp)
 
 

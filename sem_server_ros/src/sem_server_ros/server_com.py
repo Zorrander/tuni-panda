@@ -6,16 +6,6 @@ class ROSFusekiServer:
     def __init__(self):
         self.jena_fuseki_server = FusekiServer()
 
-    @staticmethod
-    def concatenate_prefix(query):
-        return """
-                    PREFIX cogrob: <http://onto-server-tuni.herokuapp.com/Panda#>
-                    PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                    PREFIX owl:  <http://www.w3.org/2002/07/owl#>
-                    PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
-                """ + query
-
     def generate_instance_uri(self, class_name):
         try:
             return self.jena_fuseki_server.generate_instance_uri(class_name)
@@ -38,7 +28,6 @@ class ROSFusekiServer:
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
-            query = self.concatenate_prefix(query)
             return self.jena_fuseki_server.select_operation(query)
         except Exception as e:
             pass
@@ -50,7 +39,6 @@ class ROSFusekiServer:
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
-            query = self.concatenate_prefix(query)
             return self.jena_fuseki_server.update_operation(query)
         except Exception as e:
             pass
@@ -62,7 +50,6 @@ class ROSFusekiServer:
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
-            query = self.concatenate_prefix(query)
             return self.jena_fuseki_server.update_operation(query)
         except Exception as e:
             pass
@@ -74,7 +61,6 @@ class ROSFusekiServer:
                   """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
-            query = self.concatenate_prefix(query)
             return self.jena_fuseki_server.ask_operation(query)
         except Exception as e:
             pass
@@ -95,7 +81,6 @@ class ROSFusekiServer:
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
-            query = self.concatenate_prefix(query)
             return self.jena_fuseki_server.describe_operation(query)
         except Exception as e:
             pass
