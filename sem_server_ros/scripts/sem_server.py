@@ -2,12 +2,20 @@
 
 import rospy
 
-from sem_server_ros.srv import Select, Describe, Ask, Update
-from sem_server_ros.srv import SelectResponse, DescribeResponse, AskResponse, UpdateResponse
+from sem_server_ros.srv import Select, Describe, Ask, Update, CreateInstance, GenerateInstanceName
+from sem_server_ros.srv import SelectResponse, DescribeResponse, AskResponse, UpdateResponse, CreateInstanceResponse, GenerateInstanceNameResponse
 from sem_server_ros.server_com import ROSFusekiServer
 from sem_server_ros.msg import Triple
 
 endpoint = ROSFusekiServer()
+
+def generate_instance_uri(req):
+    uri = endpoint.generate_instance_uri(req.class_name)
+    return GenerateInstanceNameResponse(uri)
+
+def create_instance(req):
+    result = endpoint.create_instance(req.class_name)
+    return CreateInstanceResponse(result)
 
 def select_data(req):
     ''' Returns variables bound in a query pattern match
@@ -90,4 +98,6 @@ if __name__ == "__main__":
     s = rospy.Service('read_data',   Describe, read_data)
     s = rospy.Service('test_data',   Ask,      test_data)
     s = rospy.Service('remove_data', Update,   remove_data)
+    s = rospy.Service('create_instance',   CreateInstance,      create_instance)
+    s = rospy.Service('generate_instance_uri', GenerateInstanceName,   generate_instance_uri)
     rospy.spin()

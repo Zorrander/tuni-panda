@@ -25,6 +25,8 @@ add_service_files(
    Describe.srv
    Select.srv
    Update.srv
+   GenerateInstanceName.srv
+   CreateInstance.srv
 )
 
 ## Generate actions in the 'action' folder
