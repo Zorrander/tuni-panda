@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 import rospy
-
 from sem_server_ros.planner import JenaSempyPlanner
 from sem_server_ros.server_com import ROSFusekiServer
 from cobot_controllers.arm import Arm
 from cobot_controllers.gripper import Gripper
-
-from sem_server_ros.msg import Command, Triple
+from sem_server_ros.triple_collection import Triple, Collection
+from sem_server_ros.msg import Command
 from std_msgs.msg import String
 
 speak = rospy.Publisher('/speech_output', String, queue_size=10)
@@ -20,7 +19,7 @@ gripper = Gripper()
 def check_syntax(symbol):
     triple = Triple()
     triple.subject = symbol
-    symbol_sem = sem_server.test_data(action_triple)
+    symbol_sem = sem_server.test_data(symbol)
     if not symbol_sem:
         speak.publish("I cannot understand {}".format(symbol))
         raise Exception("I don't know what {} means".format(symbol))
@@ -28,21 +27,28 @@ def check_syntax(symbol):
 def check_manipulation_preconditions(object_symbol):
     check_syntax(object_symbol, sem_server)
     object_seen = False
-    target_sem = sem_server.read_data(object_symbol)
-    for triple in target_sem:
+    object_sem = sem_server.read_data(object_symbol)
+    for triple in object_sem:
         if triple.predicate == "rdf:type" and triple.object == cmd_msg.target:
             object_seen = True
     if not object_seen:
         speak.publish("I cannot see a {}".format(cmd_msg.target))
         raise ("I can't see a {}".format(object_symbol))
-    return target_sem
+    return object_sem
 
 def choose_step(available_steps):
     ''' Implement different collaboration policies '''
     return available_steps[0]
 
-def interpret(action_sem, target_sem):
-    pass
+def interpret(action_sem, object_sem):
+    ''' decide what to do '''
+    if action_sem.has_type() == 'arm_action':
+        pass
+    elif action_sem.has_type() == 'gripper_action':
+        pass
+    else:
+        raise Exception
+
 
 def cmd_received(cmd_msg):
     try:
@@ -50,7 +56,7 @@ def cmd_received(cmd_msg):
         # Check that the manipulation is known
         check_syntax(cmd_msg.action, sem_server)
         # Verify if the object is valid
-        target_sem = check_manipulation_preconditions(cmd_msg.target, sem_server):
+        object_sem = check_manipulation_preconditions(cmd_msg.target, sem_server):
         # establish a plan
         planner.init_time()
         planner.create_plan("Cranfield_Assembly")
@@ -62,7 +68,7 @@ def cmd_received(cmd_msg):
             next_action = planner.find_next_action(next_step)
             while next_action:
                 action_sem = sem_server.read_data(next_action)
-                interpret(action_sem, target_sem)
+                interpret(Collection(action_sem), Collection(object_sem))
                 next_action = planner.find_next_action(next_step)
             # Apply a timestamp to it
             planner.apply_timestamp(action_symbol)

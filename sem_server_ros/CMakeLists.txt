@@ -45,3 +45,5 @@ catkin_package(
    CATKIN_DEPENDS rospy std_msgs message_runtime
 #  DEPENDS jena_sempy
 )
+
+catkin_add_nosetests(test)

@@ -1,0 +1,7 @@
+<launch>
+
+  <include file="$(find sem_server_ros)/launch/ros_semantic_server.launch"/>
+
+  <test test-name="test_node" pkg="sem_server_ros" type="test_sem_server.py"/>
+
+</launch>
