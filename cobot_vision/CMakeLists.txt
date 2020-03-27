@@ -6,6 +6,8 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+catkin_python_setup()
+
 find_package(catkin REQUIRED COMPONENTS
    roscpp
    rospy

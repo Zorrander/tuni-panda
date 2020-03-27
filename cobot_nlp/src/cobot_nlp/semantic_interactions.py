@@ -1,25 +1,26 @@
-from .server_com import ROSFusekiServer
+from sem_server_ros.server_com import FusekiEndpoint
+
 
 class SemanticInterpreter():
 
     def __init__(self):
-        self.sem_server = ROSFusekiServer()
+        self.sem_server = FusekiEndpoint()
 
-    def check_syntax(symbol):
-        triple = Triple()
-        triple.subject = symbol
+    def check_syntax(self, symbol):
         symbol_sem = sem_server.test_data(symbol)
         if not symbol_sem:
-            speak.publish("I cannot understand {}".format(symbol))
             raise Exception("I don't know what {} means".format(symbol))
 
-    def check_action(symbol):
-        check_syntax(symbol)
+    def check_action(self, symbol):
+        self.check_syntax(symbol)
         action_sem = sem_server.read_data(symbol)
-        return action_sem
+        print(action_sem)
+        steps = [object for subject, predicate, object in action_sem if predicate=="cogrob:causes"]
+        print("found steps:{}".format(steps))
+        return steps
 
-    def check_manipulation_preconditions(object_symbol):
-        check_syntax(object_symbol)
+    def check_manipulation_preconditions(self, object_symbol):
+        self.check_syntax(object_symbol)
         object_seen = False
         object_sem = sem_server.read_data(object_symbol)
         for triple in object_sem:
@@ -29,3 +30,7 @@ class SemanticInterpreter():
             speak.publish("I cannot see a {}".format(cmd_msg.target))
             raise ("I can't see a {}".format(object_symbol))
         return object_sem
+
+    def new_command(self, action, target):
+        steps_sem = self.check_action(action)
+        target_sem = self.check_manipulation_preconditions(target)

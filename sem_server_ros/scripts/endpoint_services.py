@@ -4,10 +4,10 @@ import rospy
 
 from sem_server_ros.srv import Select, Describe, Ask, Update, CreateInstance, GenerateInstanceName
 from sem_server_ros.srv import SelectResponse, DescribeResponse, AskResponse, UpdateResponse, CreateInstanceResponse, GenerateInstanceNameResponse
-from sem_server_ros.server_com import ROSFusekiServer
+from sem_server_ros.server_com import FusekiEndpoint
 from sem_server_ros.msg import Triple
 
-endpoint = ROSFusekiServer()
+endpoint = FusekiEndpoint()
 
 def generate_instance_uri(req):
     uri = endpoint.generate_instance_uri(req.class_name)
@@ -91,7 +91,7 @@ def read_data(req):
     return DescribeResponse(resp)
 
 if __name__ == "__main__":
-    rospy.init_node('sem_server_node')
+    rospy.init_node('endpoint_services')
     s = rospy.Service('add_data',    Update,   add_data)
     s = rospy.Service('select_data', Select,   select_data)
     s = rospy.Service('read_data',   Describe, read_data)

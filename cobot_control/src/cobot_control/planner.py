@@ -1,7 +1,7 @@
 from jena_models.planner import Planner
 
 
-class JenaSempyPlanner:
+class RosPlanner:
 
     def __init__(self):
         self.jena_planner = Planner()

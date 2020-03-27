@@ -1,7 +1,7 @@
 from jena_com.communication import FusekiServer
 
 
-class ROSFusekiServer:
+class FusekiEndpoint:
 
     def __init__(self):
         self.jena_fuseki_server = FusekiServer()
@@ -12,9 +12,9 @@ class ROSFusekiServer:
         except Exception as e:
             pass
 
-
     def create_instance(self, class_name):
         try:
+            self.notify_observers()
             return self.jena_fuseki_server.create_instance(class_name)
         except Exception as e:
             pass
@@ -39,6 +39,7 @@ class ROSFusekiServer:
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
+            self.notify_observers()
             return self.jena_fuseki_server.update_operation(query)
         except Exception as e:
             pass
@@ -50,6 +51,7 @@ class ROSFusekiServer:
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
+            self.notify_observers()
             return self.jena_fuseki_server.update_operation(query)
         except Exception as e:
             pass

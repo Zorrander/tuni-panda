@@ -6,5 +6,7 @@
   <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py" output="screen"/>
   <node name="text_to_speech" pkg="cobot_nlp" type="text_to_speech_node.py" output="screen"/>
 
+    <node name="interpreter_node" pkg="cobot_nlp" type="interpreter.py" output="screen"/>
+
 
 </launch>

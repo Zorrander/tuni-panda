@@ -1,0 +1,5 @@
+<launch>
+
+  <node name="endpoint_services" pkg="sem_server_ros" type="endpoint_services.py" output="screen" />
+
+</launch>
