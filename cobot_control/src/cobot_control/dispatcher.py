@@ -19,7 +19,7 @@ class Dispatcher():
         print("{} {}".format(action, self.counter))
 
     def dispatch(self):
-        available_steps = self.plan.find_available_steps
+        available_steps = self.plan.find_available_steps(self.time)
         while available_steps:
             # Pick an event to be performed
             next_step = self.choose_step(available_steps)
@@ -27,4 +27,4 @@ class Dispatcher():
             # Apply a timestamp to it
             self.plan.update_after_completion(next_step, self.time)
             # Update available steps
-            available_steps = self.plan.find_available_steps
+            available_steps = self.plan.find_available_steps(self.time)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import time
 import rospy
 from cobot_control.planner import RosPlanner
 from cobot_control.dispatcher import Dispatcher
@@ -23,7 +23,7 @@ def main():
         raw_input()
 
         tuto.obj_detector_publisher.publish(Object("Cup"))
-
+        time.sleep(2)
         print "============ Press `Enter` to send a command to the robot to handover the previous object ..."
         raw_input()
         action = "Give"
@@ -31,15 +31,16 @@ def main():
 
         msg = Command("Give", "Cup")
         tuto.cmd_publisher.publish(msg)
-
+        time.sleep(2)
         print "============ Press `Enter` to visualize resulting changes in the KB ..."
 
         print "============ Press `Enter` to execute the command ..."
         raw_input()
-        dispatcher = Dispatcher(self.planner)
-        task = dispatcher.dispatch()
+        dispatcher = Dispatcher(tuto.planner.retrieve_plan())
+        for task in dispatcher.dispatch():
+            print(task)
         #tutorial.sem_controller.interpret(action)
-
+        time.sleep(2)
         print "============ Press `Enter` to release the object ..."
         raw_input()
 

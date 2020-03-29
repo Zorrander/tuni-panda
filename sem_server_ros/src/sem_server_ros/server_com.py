@@ -15,7 +15,6 @@ class FusekiEndpoint:
     def create_instance(self, class_name):
         try:
             name = self.generate_instance_uri(class_name)
-            print("{} -> {}".format(class_name, name))
             self.jena_fuseki_server.create_instance(class_name)
             return name
         except Exception as e:
@@ -26,7 +25,6 @@ class FusekiEndpoint:
         try:
             if len(args) == 1:
                 query = args[0]
-                print(query)
             else:
                 query = """
                     SELECT *
@@ -40,13 +38,11 @@ class FusekiEndpoint:
 
     def add_data(self, triple):
         try:
-            print(triple)
             query ="""
                 INSERT DATA {
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
-            print(query)
             return self.jena_fuseki_server.update_operation(query)
         except Exception as e:
             print(e)

@@ -12,7 +12,6 @@ class SemanticInterpreter():
     def notify_listeners(self, collection):
         self.publisher.publish(collection)
 
-
     def check_action(self, symbol):
         template = self.query_engine.load_template('describe_command_results.rq')
         query = self.query_engine.generate(template, "'"+symbol+"'")
@@ -38,7 +37,5 @@ class SemanticInterpreter():
         self.sem_server.add_data(Triple(instance, "cogrob:has_target",  "'"+target.lower()+"'" ))
         action_sem = self.check_action(target.lower())
         target_sem = self.check_manipulation_preconditions(target)
-        print(action_sem)
-        print(target_sem)
         list_triples = [Triple(subject, predicate, object) for subject, predicate, object in action_sem+target_sem]
         self.notify_listeners(Collection(list_triples))
