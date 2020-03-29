@@ -11,7 +11,7 @@ from nltk.grammar import Nonterminal
 from nltk.parse.generate import generate
 from nltk.corpus import stopwords, brown, wordnet
 from nltk.tokenize.treebank import TreebankWordDetokenizer
-from sem_server_ros.msg import Command
+from cobot_tuni_msgs.msg import Command
 
 #PATH_GRAMMAR_FILE = os.path.join(os.path.dirname(__file__), "..", "static", 'robot_grammar.cfg')
 

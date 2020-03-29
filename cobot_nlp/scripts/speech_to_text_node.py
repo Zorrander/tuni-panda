@@ -5,7 +5,7 @@ import speech_recognition as sr
 from cobot_nlp.nlp import NLP
 from std_msgs.msg import String
 
-from sem_server_ros.msg import Command
+from cobot_tuni_msgs.msg import Command
 
 publishers = dict()
 

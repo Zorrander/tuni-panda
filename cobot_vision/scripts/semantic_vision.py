@@ -2,7 +2,7 @@
 
 import rospy
 from cobot_vision.semantic_vision import SemanticVision
-from sem_server_ros.msg import Object
+from cobot_tuni_msgs.msg import Object
 
 
 def detection_callback(obj_msg, sem_vision):

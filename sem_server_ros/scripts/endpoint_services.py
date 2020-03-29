@@ -5,7 +5,7 @@ import rospy
 from sem_server_ros.srv import Select, Describe, Ask, Update, CreateInstance, GenerateInstanceName
 from sem_server_ros.srv import SelectResponse, DescribeResponse, AskResponse, UpdateResponse, CreateInstanceResponse, GenerateInstanceNameResponse
 from sem_server_ros.server_com import FusekiEndpoint
-from sem_server_ros.msg import Triple
+from cobot_tuni_msgs.msg import Triple
 
 endpoint = FusekiEndpoint()
 

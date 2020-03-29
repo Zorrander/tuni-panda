@@ -1,36 +1,44 @@
 from sem_server_ros.server_com import FusekiEndpoint
-
+from sem_server_ros.queries import QueryTemplateEngine
+from cobot_tuni_msgs.msg import Collection, Triple
 
 class SemanticInterpreter():
 
-    def __init__(self):
+    def __init__(self, publisher):
         self.sem_server = FusekiEndpoint()
+        self.query_engine = QueryTemplateEngine(__file__)
+        self.publisher = publisher
 
-    def check_syntax(self, symbol):
-        symbol_sem = sem_server.test_data(symbol)
-        if not symbol_sem:
-            raise Exception("I don't know what {} means".format(symbol))
+    def notify_listeners(self, collection):
+        self.publisher.publish(collection)
+
 
     def check_action(self, symbol):
-        self.check_syntax(symbol)
-        action_sem = sem_server.read_data(symbol)
-        print(action_sem)
-        steps = [object for subject, predicate, object in action_sem if predicate=="cogrob:causes"]
-        print("found steps:{}".format(steps))
-        return steps
+        template = self.query_engine.load_template('describe_command_results.rq')
+        query = self.query_engine.generate(template, "'"+symbol+"'")
+        result = self.sem_server.read_data(query)
+        #steps = [object for subject, predicate, object in result if predicate=="cogrob:causes"]
+        #print("found steps:{}".format(steps))
+        return result
 
     def check_manipulation_preconditions(self, object_symbol):
-        self.check_syntax(object_symbol)
-        object_seen = False
-        object_sem = sem_server.read_data(object_symbol)
-        for triple in object_sem:
-            if triple.predicate == "rdf:type" and triple.object == cmd_msg.target:
-                object_seen = True
+        template = self.query_engine.load_template('describe_instance_target.rq')
+        query = self.query_engine.generate(template, "cogrob:"+object_symbol)
+        result = self.sem_server.read_data(query)
+        object_seen = True if result else False
         if not object_seen:
-            speak.publish("I cannot see a {}".format(cmd_msg.target))
-            raise ("I can't see a {}".format(object_symbol))
-        return object_sem
+            print("I cannot see a {}".format(object_symbol))
+        else:
+            print("I can see a {}".format(object_symbol))
+        return result
 
     def new_command(self, action, target):
-        steps_sem = self.check_action(action)
+        instance = self.sem_server.create_instance("Command")
+        self.sem_server.add_data(Triple(instance, "cogrob:has_action", "'"+action.lower()+"'" ))
+        self.sem_server.add_data(Triple(instance, "cogrob:has_target",  "'"+target.lower()+"'" ))
+        action_sem = self.check_action(target.lower())
         target_sem = self.check_manipulation_preconditions(target)
+        print(action_sem)
+        print(target_sem)
+        list_triples = [Triple(subject, predicate, object) for subject, predicate, object in action_sem+target_sem]
+        self.notify_listeners(Collection(list_triples))

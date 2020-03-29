@@ -8,16 +8,14 @@
 
   <license>TODO</license>
 
-  <depend>rospy</depend>
-  <depend>std_msgs</depend>
+  <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>rostest</build_depend>
-  <build_depend>message_generation</build_depend>
-  <build_export_depend>message_generation</build_export_depend>
 
+  <depend>rospy</depend>
+  <depend>message_generation</depend>
+  <depend>cobot_tuni_msgs</depend>
   <exec_depend>message_runtime</exec_depend>
-
-  <buildtool_depend>catkin</buildtool_depend>
 
   <test_depend>rosunit</test_depend>
 </package>
