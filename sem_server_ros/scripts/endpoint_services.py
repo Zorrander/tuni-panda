@@ -7,7 +7,7 @@ from sem_server_ros.srv import SelectResponse, DescribeResponse, AskResponse, Up
 from sem_server_ros.server_com import FusekiEndpoint
 from cobot_tuni_msgs.msg import Triple
 
-endpoint = FusekiEndpoint()
+endpoint = FusekiEndpoint(host="localhost:3030" , dataset="Panda")
 
 def generate_instance_uri(req):
     uri = endpoint.generate_instance_uri(req.class_name)

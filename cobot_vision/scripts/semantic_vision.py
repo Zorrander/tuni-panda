@@ -12,7 +12,9 @@ def detection_callback(obj_msg, sem_vision):
 if __name__ == '__main__':
     try:
         rospy.init_node('vision')
-        sem_vision = SemanticVision()
+        host = rospy.get_param('/host', 'localhost:3030')
+        dataset = rospy.get_param('/dataset', 'Panda')
+        sem_vision = SemanticVision(host, dataset)
         rospy.Subscriber("object", Object, detection_callback, (sem_vision))
         rospy.spin()
     except rospy.ROSInterruptException:

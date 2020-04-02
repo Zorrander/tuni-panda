@@ -1,4 +1,6 @@
-DESCRIBE ?s
+DESCRIBE ?obj
 WHERE {
-  ?s rdf:type * .
+  ?cmd cogrob:has_target * .
+  ?obj cogrob:is_called * .
+  ?obj rdf:type cogrob:Object
 }

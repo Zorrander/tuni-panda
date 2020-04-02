@@ -3,8 +3,11 @@
 <launch>
 
     <include file="$(find cobot_controllers)/launch/semantic_controller.launch"/>
+
     <include file="$(find cobot_vision)/launch/cobot_vision.launch"/>
+
     <include file="$(find cobot_nlp)/launch/conversation.launch"/>
+
 
     <node name="handover_demo" type="handover_demo.py" pkg="cobot_control" output="screen" />
 

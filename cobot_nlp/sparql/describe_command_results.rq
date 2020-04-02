@@ -1,4 +1,5 @@
 DESCRIBE ?s
 WHERE {
-  ?s cogrob:actsOn *
+  ?obj cogrob:is_called * .
+  ?s cogrob:actsOn ?obj
 }

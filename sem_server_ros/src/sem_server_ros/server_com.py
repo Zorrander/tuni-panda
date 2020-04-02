@@ -3,8 +3,8 @@ from jena_com.communication import FusekiServer
 
 class FusekiEndpoint:
 
-    def __init__(self):
-        self.jena_fuseki_server = FusekiServer()
+    def __init__(self, host, dataset):
+        self.jena_fuseki_server = FusekiServer(host, dataset)
 
     def generate_instance_uri(self, class_name):
         try:
