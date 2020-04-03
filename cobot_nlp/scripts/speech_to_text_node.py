@@ -45,7 +45,7 @@ def recordAudio():
 if __name__ == '__main__':
     try:
         rospy.init_node('speech_to_text_input')
-        publishers['cmd'] = rospy.Publisher('/command', Command, queue_size=10)
+        publishers['cmd'] = rospy.Publisher('/nlp_command', Command, queue_size=10)
         while not rospy.is_shutdown():
             data = recordAudio()
             transmit(data)

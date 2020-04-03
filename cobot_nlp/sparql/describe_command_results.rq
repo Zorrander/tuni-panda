@@ -1,5 +1,0 @@
-DESCRIBE ?s
-WHERE {
-  ?obj cogrob:is_called * .
-  ?s cogrob:actsOn ?obj
-}

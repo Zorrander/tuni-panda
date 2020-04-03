@@ -9,10 +9,11 @@ class Tutorial(object):
 
     def __init__(self):
         rospy.init_node('handover_demo', anonymous=True)
-        self.planner = RosPlanner()
+        self.planner = RosPlanner('localhost:3030', 'Panda')
         self.obj_detector_publisher = rospy.Publisher('/object', Object, queue_size=10)
-        self.cmd_publisher = rospy.Publisher('/command', Command, queue_size=10)
-        self.plan_subscriber = rospy.Subscriber('/plan', Collection, self.planner.create_plan)
+        self.cmd_publisher = rospy.Publisher('/nlp_command', Command, queue_size=10)
+        self.action_publisher = rospy.Publisher('/semantic_action', Command, queue_size=10)
+        self.plan_subscriber = rospy.Subscriber('/semantic_command', Command, self.planner.create_plan)
 
 def main():
     try:
@@ -23,7 +24,7 @@ def main():
         raw_input()
 
         tuto.obj_detector_publisher.publish(Object("Cup"))
-        time.sleep(2)
+
         print "============ Press `Enter` to send a command to the robot to handover the previous object ..."
         raw_input()
         action = "Give"
@@ -31,15 +32,13 @@ def main():
 
         msg = Command("Give", "Cup")
         tuto.cmd_publisher.publish(msg)
-        time.sleep(2)
         print "============ Press `Enter` to visualize resulting changes in the KB ..."
 
         print "============ Press `Enter` to execute the command ..."
         raw_input()
         dispatcher = Dispatcher(tuto.planner.retrieve_plan())
-        for task in dispatcher.dispatch():
-            print(task)
-        #tutorial.sem_controller.interpret(action)
+        for task, object in dispatcher.dispatch():
+            tuto.action_publisher.publish(Command(task, object))
         time.sleep(2)
         print "============ Press `Enter` to release the object ..."
         raw_input()

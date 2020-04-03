@@ -1,0 +1,8 @@
+CONSTRUCT {
+  ?event cogrob:actsOn ?obj
+}
+WHERE {
+  ?event cogrob:isCausedBy * ;
+  cogrob:actsOn ?thing .
+  ?obj cogrob:is_called ?thing
+}

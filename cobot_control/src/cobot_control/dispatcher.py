@@ -22,9 +22,9 @@ class Dispatcher():
         available_steps = self.plan.find_available_steps(self.time)
         while available_steps:
             # Pick an event to be performed
-            next_step = self.choose_step(available_steps)
-            yield next_step
+            task, object = self.choose_step(available_steps)
+            yield (task, object)
             # Apply a timestamp to it
-            self.plan.update_after_completion(next_step, self.time)
+            self.plan.update_after_completion(task, self.time)
             # Update available steps
             available_steps = self.plan.find_available_steps(self.time)

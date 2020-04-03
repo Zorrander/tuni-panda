@@ -1,0 +1,5 @@
+SELECT ?event
+WHERE {
+  ?cmd cogrob:has_target * .
+  ?event cogrob:actsOn * .
+}

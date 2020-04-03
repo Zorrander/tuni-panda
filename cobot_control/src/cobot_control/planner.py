@@ -1,10 +1,13 @@
 from simple_net.planner import Planner
-
+from sem_server_ros.server_com import FusekiEndpoint
+from sem_server_ros.queries import QueryTemplateEngine
 
 class RosPlanner:
 
-    def __init__(self):
+    def __init__(self, host, dataset):
         self.planner = Planner()
+        self.sem_server = FusekiEndpoint(host, dataset)
+        self.query_engine = QueryTemplateEngine(__file__)
 
     def retrieve_plan(self):
         try:
@@ -18,10 +21,12 @@ class RosPlanner:
         except Exception as e:
             print(e)
 
-    def create_plan(self, sem_collection):
-        # print("ROS plan: {}".format(sem_collection))
+    def create_plan(self, sem_command):
         try:
-            return self.planner.create_plan(sem_collection)
+            template = self.query_engine.load_template('select_semantic_plan.rq')
+            query = self.query_engine.generate(template, sem_command.action)
+            result = self.sem_server.construct_data(query)
+            return self.planner.create_plan(result)
         except:
             print(self.planner.base_solution)
             print("Error during planning")

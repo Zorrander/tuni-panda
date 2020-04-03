@@ -5,6 +5,7 @@ class SemanticController():
     def __init__(self, host, dataset):
         self.sem_server = FusekiEndpoint(host, dataset)
 
-    def interpret(self, task):
+    def interpret(self, action, target):
         ''' decide what to do '''
-        pass
+        print("action: {}".format(action))
+        print("target: {}".format(target))

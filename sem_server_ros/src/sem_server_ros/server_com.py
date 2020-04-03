@@ -43,6 +43,7 @@ class FusekiEndpoint:
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
+            print(query)
             return self.jena_fuseki_server.update_operation(query)
         except Exception as e:
             print(e)
@@ -54,6 +55,7 @@ class FusekiEndpoint:
                     """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
                 }
             """
+            print(query)
             return self.jena_fuseki_server.update_operation(query)
         except Exception as e:
             pass
@@ -94,3 +96,14 @@ class FusekiEndpoint:
             return self.jena_fuseki_server.describe_operation(query)
         except Exception as e:
             pass
+
+
+    def construct_data(self, *args):
+        try:
+            if len(args) == 1:
+                query = args[0]
+            else:
+                pass
+            return self.jena_fuseki_server.construct_operation(query)
+        except Exception as e:
+            print(e)
