@@ -1,6 +1,6 @@
 from sem_server_ros.server_com import FusekiEndpoint
 from sem_server_ros.queries import QueryTemplateEngine
-from cobot_tuni_msgs.msg import Triple, Command
+from cobot_tuni_msgs.msg import  Command
 
 class SemanticVision:
 
@@ -30,7 +30,7 @@ class SemanticVision:
         else:
             print("I can see a {}".format(target))
             obj = 'cogrob:'+str(obj[0]).split('#')[1]
-            self.sem_server.add_data(Triple(action, "cogrob:actsOn", obj))
+            self.sem_server.add_data(action, "cogrob:actsOn", obj)
             self.notify_listeners(action, obj)
 
     def store_width(self, object, pose):

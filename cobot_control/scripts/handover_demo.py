@@ -36,7 +36,7 @@ def main():
 
         print "============ Press `Enter` to execute the command ..."
         raw_input()
-        dispatcher = Dispatcher(tuto.planner.retrieve_plan())
+        dispatcher = Dispatcher(tuto.planner.retrieve_plan(), 'localhost:3030', 'Panda')
         for task, object in dispatcher.dispatch():
             tuto.action_publisher.publish(Command(task, object))
         time.sleep(2)

@@ -36,14 +36,17 @@ class FusekiEndpoint:
         except Exception as e:
             pass
 
-    def add_data(self, triple):
+    def add_data(self, *args):
         try:
-            query ="""
-                INSERT DATA {
-                    """ + triple.subject + """ """ + triple.predicate + """ """ + triple.object + """ .
-                }
-            """
-            print(query)
+            if len(args) == 1:
+                query = args[0]
+            else:
+                query ="""
+                    INSERT DATA {
+                        """ + args[0] + """ """ + args[1] + """ """ + args[2] + """ .
+                    }
+                """
+                print(query)
             return self.jena_fuseki_server.update_operation(query)
         except Exception as e:
             print(e)

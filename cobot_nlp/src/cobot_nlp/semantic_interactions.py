@@ -1,6 +1,6 @@
 from sem_server_ros.server_com import FusekiEndpoint
 from sem_server_ros.queries import QueryTemplateEngine
-from cobot_tuni_msgs.msg import Collection, Triple, Command
+from cobot_tuni_msgs.msg import Collection, Command
 
 class SemanticInterpreter():
 
@@ -14,6 +14,6 @@ class SemanticInterpreter():
 
     def new_command(self, action, target):
         instance = self.sem_server.create_instance("Command")
-        self.sem_server.add_data(Triple(instance, "cogrob:has_action", "'"+action.lower()+"'" ))
-        self.sem_server.add_data(Triple(instance, "cogrob:has_target",  "'"+target.lower()+"'" ))
+        self.sem_server.add_data(instance, "cogrob:has_action", "'"+action.lower()+"'" )
+        self.sem_server.add_data(instance, "cogrob:has_target",  "'"+target.lower()+"'" )
         self.notify_listeners(Command(instance, target.lower()))
