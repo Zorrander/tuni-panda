@@ -1,5 +1,5 @@
-SELECT ?action ?o
+SELECT ?action ?target
 WHERE {
   ?action cogrob:isCausedBy * .
-  ?action cogrob:actsOn ?o .
+  ?action cogrob:actsOn ?target .
 }

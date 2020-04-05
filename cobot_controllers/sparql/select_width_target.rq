@@ -1,0 +1,4 @@
+SELECT ?width
+WHERE {
+  * cogrob:hasWidth ?width .
+}

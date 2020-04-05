@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_service_files(
   FILES
-  TagPose.srv
+  EstimatePose.srv
 )
 
 generate_messages(

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from cobot_vision.srv import TagPose, TagPoseResponse
+from cobot_vision.srv import EstimatePose, EstimatePoseResponse
 from apriltag_ros.msg import AprilTagDetectionArray
 from geometry_msgs.msg import PoseStamped
 import tf
@@ -23,7 +23,7 @@ class TagPoseServer(object):
         }
         self.listener = tf.TransformListener()
         rospy.Subscriber("/tag_detections", AprilTagDetectionArray, self.callback)
-        self.s = rospy.Service('calculate_tag_pose', TagPose, self.calculate_tag_pose)
+        self.s = rospy.Service('calculate_tag_pose', EstimatePose, self.calculate_tag_pose)
 
     def callback(self, msg_array):
         for tag in msg_array.detections:
@@ -43,7 +43,7 @@ class TagPoseServer(object):
             self.tags[int(id)] = pose_in_robot
 
     def calculate_tag_pose(self, req):
-        return TagPoseResponse(self.tags[req.tag_id].pose)
+        return EstimatePoseResponse(self.tags[req.obj_id].pose)
 
 
 

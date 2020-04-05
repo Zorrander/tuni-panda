@@ -5,7 +5,7 @@ from cobot_vision.semantic_vision import SemanticVision
 from cobot_tuni_msgs.msg import Object, Command
 
 def detection_callback(obj_msg, sem_vision):
-    sem_vision.new_object(obj_msg.type)
+    sem_vision.new_object(obj_msg.type, obj_msg.width)
 
 def command_callback(cmd_msg, sem_vision):
     sem_vision.anchor_object(cmd_msg.action, cmd_msg.target)

@@ -13,8 +13,9 @@ class SemanticVision:
         print("Sending {}".format(Command(cmd, obj)))
         self.publisher.publish(Command(cmd, obj))
 
-    def new_object(self, object_type):
-        self.sem_server.create_instance(object_type)
+    def new_object(self, object_type, width):
+        instance = self.sem_server.create_instance(object_type)
+        self.sem_server.add_data(instance, "cogrob:hasWidth", width)
 
     def anchor_object(self, action, target):
         print(action)
@@ -32,9 +33,3 @@ class SemanticVision:
             obj = 'cogrob:'+str(obj[0]).split('#')[1]
             self.sem_server.add_data(action, "cogrob:actsOn", obj)
             self.notify_listeners(action, obj)
-
-    def store_width(self, object, pose):
-        pass
-
-    def store_pose(self, object, pose):
-        pass

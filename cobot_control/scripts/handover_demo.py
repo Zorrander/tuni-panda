@@ -23,7 +23,7 @@ def main():
         print "============ Press `Enter` to spawn an object on the workspace ..."
         raw_input()
 
-        tuto.obj_detector_publisher.publish(Object("Cup"))
+        tuto.obj_detector_publisher.publish(Object("Cup", 0.07))
 
         print "============ Press `Enter` to send a command to the robot to handover the previous object ..."
         raw_input()

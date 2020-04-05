@@ -43,7 +43,7 @@ class FusekiEndpoint:
             else:
                 query ="""
                     INSERT DATA {
-                        """ + args[0] + """ """ + args[1] + """ """ + args[2] + """ .
+                        """ + args[0] + """ """ + args[1] + """ """ + str(args[2]) + """ .
                     }
                 """
                 print(query)
