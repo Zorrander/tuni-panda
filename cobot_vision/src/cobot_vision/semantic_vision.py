@@ -13,12 +13,13 @@ class SemanticVision:
         print("Sending {}".format(Command(cmd, obj)))
         self.publisher.publish(Command(cmd, obj))
 
-    def new_object(self, object_type, width):
+    def new_object(self, object_type, width, id):
         instance = self.sem_server.create_instance(object_type)
         self.sem_server.add_data(instance, "cogrob:hasWidth", width)
+        self.sem_server.add_data(instance, "cogrob:hasId", id)
 
-    def anchor_object(self, action, target):
-        print(action)
+    def anchor_object(self, cmd, target):
+        print(cmd)
         template = self.query_engine.load_template('describe_instance_target.rq')
         query = self.query_engine.generate(template, "'"+target+"'")
         result = self.sem_server.select_data(query)
@@ -31,5 +32,6 @@ class SemanticVision:
         else:
             print("I can see a {}".format(target))
             obj = 'cogrob:'+str(obj[0]).split('#')[1]
-            self.sem_server.add_data(action, "cogrob:actsOn", obj)
-            self.notify_listeners(action, obj)
+            self.sem_server.add_data(cmd, "cogrob:has_target",  obj )
+            # self.sem_server.add_data(action, "cogrob:actsOn", obj)
+            self.notify_listeners(cmd, obj)

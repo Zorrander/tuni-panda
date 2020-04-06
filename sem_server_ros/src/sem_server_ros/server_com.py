@@ -51,6 +51,19 @@ class FusekiEndpoint:
         except Exception as e:
             print(e)
 
+    def remove_all_data(self, subject):
+        try:
+            query ="""
+                DELETE {""" + subject + """ ?p ?o }
+                WHERE {
+                    """ + subject + """ ?p ?o .
+                }
+            """
+            print(query)
+            return self.jena_fuseki_server.update_operation(query)
+        except Exception as e:
+            pass
+
     def remove_data(self, triple):
         try:
             query ="""

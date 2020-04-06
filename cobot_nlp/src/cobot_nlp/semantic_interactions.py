@@ -15,5 +15,5 @@ class SemanticInterpreter():
     def new_command(self, action, target):
         instance = self.sem_server.create_instance("Command")
         self.sem_server.add_data(instance, "cogrob:has_action", "'"+action.lower()+"'" )
-        self.sem_server.add_data(instance, "cogrob:has_target",  "'"+target.lower()+"'" )
+        #self.sem_server.add_data(instance, "cogrob:has_target",  "'"+target.lower()+"'" )
         self.notify_listeners(Command(instance, target.lower()))

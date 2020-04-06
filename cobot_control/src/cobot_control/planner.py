@@ -24,8 +24,9 @@ class RosPlanner:
     def create_plan(self, sem_command):
         try:
             template = self.query_engine.load_template('select_semantic_plan.rq')
-            query = self.query_engine.generate(template, sem_command.action)
+            query = self.query_engine.generate(template, sem_command)
             result = self.sem_server.construct_data(query)
+            print("R E S U L T  P L A N:{}".format(result))
             return self.planner.create_plan(result)
         except:
             print(self.planner.base_solution)

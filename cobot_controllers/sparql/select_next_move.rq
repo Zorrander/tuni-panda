@@ -1,5 +1,6 @@
-SELECT ?action ?target
+SELECT ?action ?actionType ?target
 WHERE {
   ?action cogrob:isCausedBy * .
   ?action cogrob:actsOn ?target .
+  ?action rdf:type ?actionType .
 }

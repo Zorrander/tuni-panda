@@ -33,6 +33,7 @@ class Dispatcher():
     def dispatch(self):
         available_steps = self.plan.find_available_steps(self.time)
         while available_steps:
+            print("Available steps: {}".format(available_steps))
             # Pick an event to be performed
             task, object = self.choose_step(available_steps)
             # Attribute it to the robot in the KB

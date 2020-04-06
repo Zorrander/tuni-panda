@@ -1,6 +1,5 @@
 SELECT ?obj
 WHERE {
-  ?cmd cogrob:has_target * .
   ?obj cogrob:is_called * .
   ?obj rdf:type cogrob:Object
 }
