@@ -17,9 +17,10 @@ if __name__ == '__main__':
         host = rospy.get_param('/host', 'localhost:3030')
         dataset = rospy.get_param('/dataset', 'Panda')
         action_update = rospy.Publisher('/action_command', Command, queue_size=10)
+        commitment_update = rospy.Publisher('/commitment_command', Command, queue_size=10)
         # rospy.wait_for_service('estimate_pose')
         pose_estimator = rospy.ServiceProxy('calculate_tag_pose', EstimatePose)
-        sem_controller = SemanticController(host, dataset, pose_estimator, action_update)
+        sem_controller = SemanticController(host, dataset, pose_estimator, action_update, commitment_update)
         rospy.Subscriber("/semantic_action", Command, action_callback, (sem_controller))
         rospy.spin()
     except rospy.ROSInterruptException:

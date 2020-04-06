@@ -4,7 +4,7 @@ from cobot_tuni_msgs.msg import  Command
 
 class SemanticController():
 
-    def __init__(self, host, dataset, pose_estimator, publisher):
+    def __init__(self, host, dataset, pose_estimator, action_publisher, commitment_publisher):
         self.sem_server = FusekiEndpoint(host, dataset)
         self.query_engine = QueryTemplateEngine(__file__)
         self.action_map = {
@@ -12,11 +12,12 @@ class SemanticController():
             'GripperEvent': self.move_gripper
         }
         self.pose_estimator = pose_estimator
-        self.publisher = publisher
+        self.action_publisher = action_publisher
+        self.commitment_publisher = commitment_publisher
 
     def notify_listeners(self, cmd, obj):
         print("Sending {}".format(Command(cmd, obj)))
-        self.publisher.publish(Command(cmd, obj))
+        self.action_publisher.publish(Command(cmd, obj))
 
     def move_arm(self, next_target):
         template = self.query_engine.load_template('select_id_target.rq')

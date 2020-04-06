@@ -1,7 +1,17 @@
 CONSTRUCT {
-  ?event cogrob:actsOn ?obj
+  ?event cogrob:actsOn ?obj .
+  ?event cogrob:impliesCommitment ?commitment.
+  ?commitment cogrob:actsOn ?obj2 .
+  ?reaction cogrob:isCausedBy ?commitment .
+  ?reaction cogrob:actsOn ?obj3 .
 }
 WHERE {
   ?event cogrob:isCausedBy * ;
   cogrob:actsOn ?obj .
+  OPTIONAL {
+      ?event cogrob:impliesCommitment ?commitment.
+      ?commitment cogrob:actsOn ?obj2 .
+      ?reaction cogrob:isCausedBy ?commitment .
+      ?reaction cogrob:actsOn ?obj3 .
+  }
 }
