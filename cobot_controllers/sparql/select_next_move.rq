@@ -1,6 +1,13 @@
-SELECT ?action ?actionType ?target
+SELECT ?action ?actionClass ?target
 WHERE {
   ?action cogrob:isCausedBy * .
   ?action cogrob:actsOn ?target .
   ?action rdf:type ?actionType .
+  NOT EXISTS {
+    ?action cogrob:isCompleted "true"^^xsd:boolean .
+  }
+  ?actionType rdfs:subClassOf ?actionClass.
+  FILTER (
+    ?actionClass IN (cogrob:ArmEvent, cogrob:GripperEvent )
+  ) .
 }

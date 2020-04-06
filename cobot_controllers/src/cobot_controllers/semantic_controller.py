@@ -18,26 +18,22 @@ class SemanticController():
         print("Sending {}".format(Command(cmd, obj)))
         self.publisher.publish(Command(cmd, obj))
 
-    def move_arm(self, next_action, next_target):
+    def move_arm(self, next_target):
         template = self.query_engine.load_template('select_id_target.rq')
         query = self.query_engine.generate(template, next_target)
         print(query)
         result = self.sem_server.select_data(query)
         print("Estimate pose and go to object {}".format(result[0]['id']['value']))
-        self.sem_server.add_data(next_target, 'cogrob:isInReachOf', 'cogrob:Panda')
-        self.sem_server.remove_all_data(next_action)
         #resp = self.pose_estimator(result[0]['id']['value'])
         #print(resp)
         # self.arm.go_to_cartesian_goal(resp.obj_pose)
 
-    def move_gripper(self, next_action, next_target):
+    def move_gripper(self, next_target):
         template = self.query_engine.load_template('select_width_target.rq')
         query = self.query_engine.generate(template, next_target)
         print(query)
         result = self.sem_server.select_data(query)
         print(result)
-        self.sem_server.add_data('cogrob:Panda', 'cogrob:isHolding', next_target)
-        self.sem_server.remove_all_data(next_action)
         # self.gripper.grasp(20, result['width']['value'])  # force, width
 
     def interpret(self, action, target):
@@ -52,11 +48,12 @@ class SemanticController():
             result = self.sem_server.select_data(query)
             if result:
                 next_action = result[0]['action']['value']
-                next_action_type = result[0]['actionType']['value']
+                next_action_type = result[0]['actionClass']['value']
                 next_target = result[0]['target']['value']
                 print("next move: {}".format(str(next_action_type).split('#')[1]))
                 print("next_target: {}".format(target))
-                self.action_map[str(next_action_type).split('#')[1]]('cogrob:'+str(next_action).split('#')[1], target)
+                self.action_map[str(next_action_type).split('#')[1]](target)
+                self.sem_server.add_data('cogrob:'+str(next_action).split('#')[1], 'cogrob:isCompleted', '"true"^^xsd:boolean')
             else:
                 self.notify_listeners(action, target)
                 break
