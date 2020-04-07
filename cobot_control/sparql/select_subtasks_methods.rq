@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 SELECT ?subtask
 WHERE {
   GRAPH <planner> {
     * cogrob:hasSubtask ?subtask
+=======
+SELECT ?method
+WHERE {
+  GRAPH <planner> {
+    * cogrob:hasMethod ?method
+>>>>>>> 72bbe646c249e28d3f06e9e3d0c0c26f46b5d9e0
   }
 }
