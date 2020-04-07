@@ -19,7 +19,6 @@ class RosPlanner:
     def init_working_world_state():
         template = self.query_engine.load_template('create_plan_graph.rq')
         self.sem_server.add_data(template)
-<<<<<<< HEAD
 
     def find_type(self, task):
         template = self.query_engine.load_template('select_type.rq')
@@ -38,33 +37,12 @@ class RosPlanner:
         
     def find_satisfied_method(self, current_task):
         template = self.query_engine.load_template('select_satisfied_methods.rq')
-=======
-
-    def find_type(self, task):
-        template = self.query_engine.load_template('select_type.rq')
-        query = self.query_engine.generate(template, task)
-        result = self.sem_server.select_data(query)
-        return result
-
-    def are_preconditions_met(self, primitive, plan=True):
-        template = self.query_engine.load_template('ask_plan_preconditions.rq') if plan else self.query_engine.load_template('ask_preconditions.rq')
-        query = self.query_engine.generate(template, primitive)
-        result = self.sem_server.ask_data(query)
-        return result
-
-    def find_satisfied_method(self, current_task):
-        template = self.query_engine.load_template('select_satisfied_task_methods.rq')
->>>>>>> 72bbe646c249e28d3f06e9e3d0c0c26f46b5d9e0
         query = self.query_engine.generate(template, current_task)
         result = self.sem_server.ask_data(query)
         for state in self.decomp_history:
             if state[4] in result:
                 result.remove(state[4])
-<<<<<<< HEAD
         return self.has_highest_priority(result)
-=======
-        return result
->>>>>>> 72bbe646c249e28d3f06e9e3d0c0c26f46b5d9e0
 
     def find_subtasks(self, method):
         template = self.query_engine.load_template('select_subtasks_methods.rq')
