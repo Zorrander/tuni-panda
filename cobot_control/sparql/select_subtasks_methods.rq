@@ -1,0 +1,6 @@
+SELECT ?method
+WHERE {
+  GRAPH <planner> {
+    * cogrob:hasMethod ?method
+  }
+}
