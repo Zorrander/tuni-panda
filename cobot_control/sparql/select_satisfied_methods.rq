@@ -1,0 +1,9 @@
+SELECT ?method ?priority
+WHERE {
+  GRAPH <planner> {
+    * cogrob:hasMethod ?method
+    ?method cogrob:hasPriority ?priority
+    ?method cogrob:has_precond ?precond
+    ?precond cogrob:isMet "true"^^xsd:boolean
+  }
+}

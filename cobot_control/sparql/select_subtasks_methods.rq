@@ -1,0 +1,6 @@
+SELECT ?subtask
+WHERE {
+  GRAPH <planner> {
+    * cogrob:hasSubtask ?subtask
+  }
+}

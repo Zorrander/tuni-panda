@@ -1,0 +1,6 @@
+ASK {
+    GRAPH <planner> {
+      * cogrob:has_precond ?precond
+      ?precond cogrob:isMet "true"^^xsd:boolean
+    }
+}
