@@ -1,4 +1,4 @@
-SELECT ?method ?priority
+SELECT DISTINCT ?method ?priority
 WHERE {
   GRAPH <planner> {
     * cogrob:hasMethod ?method .

@@ -1,4 +1,4 @@
 ASK {
-    * cogrob:has_precond ?precond .
+    * cogrob:hasCondition ?precond .
     ?precond cogrob:isMet "true"^^xsd:boolean
 }

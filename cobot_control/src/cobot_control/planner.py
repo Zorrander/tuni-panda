@@ -3,6 +3,7 @@ from sem_server_ros.server_com import FusekiEndpoint
 from sem_server_ros.queries import QueryTemplateEngine
 from cobot_controllers.semantic_controller import SemanticController
 from cobot_tuni_msgs.msg import Command
+import time
 
 class DispatchingError(Exception):
    def __init__(self, primitive):
@@ -29,7 +30,11 @@ class RosPlanner:
         return str(result[0]['type']['value']).split('#')[1]
 
     def are_preconditions_met(self, primitive, plan=True):
-        return True
+        template = self.query_engine.load_template('ask_plan_preconditions.rq') if plan else self.query_engine.load_template('ask_preconditions.rq')
+        query = self.query_engine.generate(template, primitive)
+        result = self.sem_server.test_data(query)
+        print("find_satisfied_method: {}".format(result))
+        return result
 
     def has_highest_priority(self, tuples):
         max_prio = 100
@@ -48,7 +53,7 @@ class RosPlanner:
             if state[4] in result:
                 result.remove(state[4])
         result = [('cogrob:'+str(x['method']['value'].split('#')[1]), int(x['priority']['value'])) for x in result]
-        print("are_preconditions_met: {}".format(result))
+        print("find_satisfied_method: {}".format(result))
         return self.has_highest_priority(result)
 
     def find_subtasks(self, method):
@@ -89,6 +94,7 @@ class RosPlanner:
             self.decomp_history = []
             self.tasks_to_process = [sem_command] if not isinstance(sem_command, list) else sem_command
             while self.tasks_to_process:
+                time.sleep(2)
                 current_task = self.tasks_to_process.pop(0)
                 if self.find_type(current_task) == "CompoundTask":
                     method = self.find_satisfied_method(current_task)
