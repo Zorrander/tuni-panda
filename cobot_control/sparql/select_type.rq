@@ -2,6 +2,6 @@ SELECT ?type
 WHERE {
   GRAPH <planner> {
     * rdf:type ?type
-    VALUES ?type { "CompoundTask" "PrimitiveTask" }
+    VALUES ?type { cogrob:CompoundTask cogrob:PrimitiveTask }
   }
 }

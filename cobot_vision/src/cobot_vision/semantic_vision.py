@@ -33,5 +33,8 @@ class SemanticVision:
             print("I can see a {}".format(target))
             obj = 'cogrob:'+str(obj[0]).split('#')[1]
             self.sem_server.add_data(cmd, "cogrob:has_target",  obj )
-            # self.sem_server.add_data(action, "cogrob:actsOn", obj)
-            self.notify_listeners(cmd, obj)
+            template = self.query_engine.load_template('describe_command_results.rq')
+            query = self.query_engine.generate(template, cmd)
+            result = self.sem_server.select_data(query)
+            task = 'cogrob:'+str(result[0]['task']['value']).split('#')[1] 
+            self.notify_listeners(task, obj)

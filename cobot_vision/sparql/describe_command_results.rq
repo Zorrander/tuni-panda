@@ -1,5 +1,4 @@
-SELECT ?event
+SELECT ?task
 WHERE {
-  ?cmd cogrob:has_target * .
-  ?event cogrob:actsOn * .
+  ?task cogrob:isCausedBy * .
 }

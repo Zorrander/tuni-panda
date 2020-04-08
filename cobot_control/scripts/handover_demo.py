@@ -3,6 +3,8 @@ import time
 import rospy
 from cobot_control.planner import RosPlanner
 from cobot_tuni_msgs.msg import Command, Object, Collection
+from cobot_vision.srv import EstimatePose
+from cobot_controllers.semantic_controller import SemanticController
 
 class Tutorial(object):
 
@@ -10,17 +12,20 @@ class Tutorial(object):
         rospy.init_node('handover_demo', anonymous=True)
         self.obj_detector_publisher = rospy.Publisher('/object', Object, queue_size=10)
         self.cmd_publisher = rospy.Publisher('/nlp_command', Command, queue_size=10)
-        self.action_publisher = rospy.Publisher('/semantic_action', Command, queue_size=10)
+
         self.plan_subscriber = rospy.Subscriber('/semantic_command', Command, self.create_plan)
+
+        action_publisher = rospy.Publisher('/semantic_action', Command, queue_size=10)
         pose_estimator = rospy.ServiceProxy('calculate_tag_pose', EstimatePose)
-        sem_controller = SemanticController(host, dataset, pose_estimator)
-        self.planner = RosPlanner('localhost:3030', 'Panda', self.action_publisher, sem_controller)
+        sem_controller = SemanticController('localhost:3030', 'Panda', pose_estimator, action_publisher)
+
+        self.planner = RosPlanner('localhost:3030', 'Panda', sem_controller)
 
     def create_plan(self, cmd):
         print("create_plan {}".format(cmd.action))
         self.planner.create_plan(cmd.action)
-        self.planner.run(plan)
-
+        print("FINIS_HED CREATING PLAN {}".format(self.planner.final_plan))
+        self.planner.run()
 
 def main():
     try:
