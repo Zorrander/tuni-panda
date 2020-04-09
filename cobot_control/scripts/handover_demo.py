@@ -23,7 +23,7 @@ class Tutorial(object):
 
     def create_plan(self, cmd):
         print("create_plan {}".format(cmd.action))
-        self.planner.create_plan(cmd.action)
+        self.planner.create_plan()
         print("FINIS_HED CREATING PLAN {}".format(self.planner.final_plan))
         self.planner.run()
 
