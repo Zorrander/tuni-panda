@@ -1,7 +1,0 @@
-SELECT ?type
-WHERE {
-  GRAPH <planner> {
-    * rdf:type ?type
-    VALUES ?type { cogrob:CompoundTask cogrob:PrimitiveTask }
-  }
-}

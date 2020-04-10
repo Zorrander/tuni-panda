@@ -1,8 +1,0 @@
-SELECT DISTINCT ?subtask
-WHERE {
-  GRAPH <planner> {
-    * cogrob:hasSubTask ?subtask .
-    ?subtask cogrob:has_precond ?precond .
-    ?precond cogrob:isMet "true"^^xsd:boolean .
-  }
-}

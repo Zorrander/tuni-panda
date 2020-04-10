@@ -1,5 +1,0 @@
-INSERT DATA {
-  GRAPH <planner> {
-    * cogrob:isCompleted "true"^^xsd:boolean
-  }
-}

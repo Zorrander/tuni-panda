@@ -1,4 +1,0 @@
-SELECT ?id
-WHERE {
-  * cogrob:hasId ?id .
-}

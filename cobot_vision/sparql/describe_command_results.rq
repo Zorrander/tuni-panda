@@ -1,4 +1,0 @@
-SELECT ?task
-WHERE {
-  ?task cogrob:isCausedBy * .
-}

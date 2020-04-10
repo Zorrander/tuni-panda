@@ -1,5 +1,0 @@
-SELECT ?obj
-WHERE {
-  ?obj cogrob:is_called * .
-  ?obj rdf:type cogrob:Object
-}

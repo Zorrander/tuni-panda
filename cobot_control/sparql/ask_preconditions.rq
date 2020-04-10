@@ -1,6 +1,0 @@
-ASK {
-    * cogrob:hasCondition ?precond .
-    NOT EXISTS {
-      ?precond cogrob:isMet "true"^^xsd:boolean
-    }
-}

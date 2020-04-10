@@ -1,6 +1,0 @@
-SELECT DISTINCT ?subtask
-WHERE {
-  GRAPH <planner> {
-    * cogrob:hasSubtask ?subtask
-  }
-}

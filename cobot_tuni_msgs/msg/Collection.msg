@@ -1,1 +1,0 @@
-Triple[] list_triples
