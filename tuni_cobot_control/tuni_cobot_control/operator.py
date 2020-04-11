@@ -1,19 +1,19 @@
-from tuni_cobot_control.state import *
+from owlready2 import *
 
 
-class IdleOperator():
-    def run(self, state_handler):
-        state_handler.is_holding_something(True)
+class IdleOperator(Thing):
+    def run(self, world):
         print("Et les shadocks pompaient")
+        return True
 
-
-class MoveOperator():
-    def run(self):
+class MoveOperator(Thing):
+    def run(self, world, place):
         pass
 
-class OpenOperator():
-    def run(self):
+class OpenOperator(Thing):
+    def run(self, world):
         pass
-class CloseOperator():
-    def run(self):
+
+class CloseOperator(Thing):
+    def run(self, world, object):
         pass
