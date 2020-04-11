@@ -15,6 +15,7 @@ class Planner(Node):
         self.decomp_history.insert(0, (current_task, self.final_plan, method))
 
     def restore_to_last_decomposed_task(self):
+        print("RESTOre")
         last_record = self.decomp_history.pop(0)
         self.tasks_to_process.append(last_record[0])
         self.final_plan = last_record[1]
@@ -22,18 +23,16 @@ class Planner(Node):
     def create_plan(self, current_world):
         try:
             world = DigitalWorld(current_world)
-            print(world)
             self.final_plan = []
             self.decomp_history = []
             self.tasks_to_process = world.root_task
-            print("TASKS TO PROCESS: {}".format(self.tasks_to_process))
             while self.tasks_to_process:
+                print("TASKS TO PROCESS: {}".format(self.tasks_to_process))
                 current_task = self.tasks_to_process.pop(0)
                 print("CURRENT TASK: {}".format(current_task))
                 if world.find_type(current_task) == "CompoundTask":
                     method = world.find_satisfied_method(current_task)
                     test = True if method else False
-                    print("if method {}".format(test))
                     if method:
                         self.record_decomposition_of_task(current_task, method)
                         new_tasks = [task for task in world.find_subtasks(method) if task not in self.final_plan]
@@ -45,9 +44,9 @@ class Planner(Node):
                     if world.are_preconditions_met(current_task):
                         print("Preconditions of {} are met".format(current_task))
                         world.apply_effects(current_task)
-
                         self.final_plan.append(current_task)
                     else:
+                        print("Preconditions of {} are NOT MET".format(current_task))
                         self.restore_to_last_decomposed_task()
         except Exception as e:
             print(e)
@@ -72,7 +71,7 @@ def main(args=None):
     rclpy.init(args=args)
     world = DigitalWorld()
     planner = Planner()
-    #world.send_command()
+    world.send_command()
     planner.create_plan(world)
     print("Final plan: {}".format(planner.final_plan))
     time.sleep(1)

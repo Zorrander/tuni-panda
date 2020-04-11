@@ -354,6 +354,12 @@
                 </owl:intersectionOf>
             </owl:Class>
         </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#useOperator"/>
+                <owl:someValuesFrom rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#CloseOperator"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
     </owl:Class>
     
 
@@ -612,6 +618,12 @@
                 <owl:someValuesFrom rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#IsHoldingSomething"/>
             </owl:Restriction>
         </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#useOperator"/>
+                <owl:someValuesFrom rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#MoveOperator"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
     </owl:Class>
     
 
@@ -742,6 +754,12 @@
                 </owl:intersectionOf>
             </owl:Class>
         </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#useOperator"/>
+                <owl:someValuesFrom rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#MoveOperator"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
     </owl:Class>
     
 
@@ -762,6 +780,12 @@
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#hasCondition"/>
                 <owl:someValuesFrom rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#IsHoldingSomething"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#useOperator"/>
+                <owl:someValuesFrom rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#OpenOperator"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>

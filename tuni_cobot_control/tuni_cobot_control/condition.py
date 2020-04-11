@@ -12,15 +12,18 @@ class IsHoldingSomething(Thing):
 
 class IsNotHoldingSomething(Thing):
     def evaluate(self, world):
-        pass
+        doesNotHold = world.search(isHoldingSomething = True)
+        return False if doesNotHold else True
 
 class IsCapableOfReaching(Thing):
     def evaluate(self, world):
-        pass
+        canReach = world.search(isCapableOfReaching = True)
+        return True if canReach else False
 
 class IsNotCapableOfReaching(Thing):
     def evaluate(self, world):
-        pass
+        cannotReach = world.search(isCapableOfReaching = True)
+        return False if cannotReach else True
 
 class IsReadyToBeTaken(Thing):
     def evaluate(self, world):
