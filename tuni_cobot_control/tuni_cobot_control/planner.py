@@ -72,11 +72,11 @@ def main(args=None):
     rclpy.init(args=args)
     world = DigitalWorld()
     planner = Planner()
-    while True:
-        planner.create_plan(world)
-        print("Final plan: {}".format(planner.final_plan))
-        time.sleep(1)
-        world.send_command()
+    #world.send_command()
+    planner.create_plan(world)
+    print("Final plan: {}".format(planner.final_plan))
+    time.sleep(1)
+
 
     rclpy.spin(planner)
 
