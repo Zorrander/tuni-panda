@@ -5,7 +5,6 @@ import time
 
 class IdleOperator(Thing):
     def run(self, world, primitive, robot):
-        print("Et les shadocks pompaient")
         return True
 
 class MoveOperator(Thing):

@@ -2,8 +2,12 @@ from owlready2 import *
 
 class ReceivedHandoverCommand(Thing):
     def evaluate(self, world, robot):
-        cmd = world.search(type = world['http://onto-server-tuni.herokuapp.com/Panda#HandoverCommand'])
-        return True if cmd else False
+        cmd = world.search_one(type = world['http://onto-server-tuni.herokuapp.com/Panda#HandoverCommand'])
+        if cmd:
+            destroy_entity(cmd)
+            return True
+        else:
+            return False
 
 class IsHoldingSomething(Thing):
     def evaluate(self, world,robot):

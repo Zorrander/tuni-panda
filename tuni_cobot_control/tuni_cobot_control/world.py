@@ -22,17 +22,20 @@ class DigitalWorld():
         cmd.has_action = "give"
 
     def find_type(self, task):
-        compound_tasks = self.world.search(subclass_of = self.world['http://onto-server-tuni.herokuapp.com/Panda#CompoundTask'])
-        print(compound_tasks)
-        result = "CompoundTask" if task in compound_tasks else "PrimitiveTask"
+        result = "CompoundTask"
+        for type in task.is_a:
+            if "_name" in type.__dict__ and "PrimitiveTask" == type._name:
+                result = "PrimitiveTask"
+                break
         return result
 
     def find_satisfied_method(self, current_task):
         satisfied_methods = []
         for method in current_task.hasMethod:
             if self.are_preconditions_met(method):
-                satisfied_methods.append((method, method.hasPriority))
-        return satisfied_methods
+                satisfied_methods.append(method)
+        if satisfied_methods:
+            return self.has_highest_priority(satisfied_methods)
 
     def has_highest_priority(self, methods):
         max_prio = 100
@@ -48,11 +51,9 @@ class DigitalWorld():
         with self.world.ontologies['http://onto-server-tuni.herokuapp.com/Panda#']:
             result = True
             for conditions in primitive.INDIRECT_hasCondition:
-                print("Explore {} of {}".format(conditions, primitive))
                 c = getattr(condition, conditions.name)
                 if not c().evaluate(self.world, self.robot):
                         result = False
-                print(result)
             return result
 
     def find_subtasks(self, method):
