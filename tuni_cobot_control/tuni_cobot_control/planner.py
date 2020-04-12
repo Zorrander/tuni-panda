@@ -8,46 +8,58 @@ class Planner(Node):
 
     def __init__(self):
         super().__init__('planner')
-        self.final_plan = []
-        self.decomp_history = []
 
-    def record_decomposition_of_task(self, current_task, method):
-        self.decomp_history.insert(0, (current_task, self.final_plan, method))
+    def explore_primitive_task(self, current_task):
+        print("Explore {}".format(current_task))
+        return True if self.world.are_preconditions_met(current_task) else False
 
-    def restore_to_last_decomposed_task(self):
-        print("RESTOre")
-        last_record = self.decomp_history.pop(0)
-        self.tasks_to_process.append(last_record[0])
-        self.final_plan = last_record[1]
+    def sort_priority(self, elem):
+        return elem[1]
+
+    def explore_compound_task(self, current_task):
+        print("Explore {}".format(current_task))
+        method = self.world.find_satisfied_method(current_task)
+        if method:
+            method.sort(key=self.sort_priority)
+            new_tasks = [task for task in self.world.find_subtasks(method[0][0])]
+            print("NEW TASKS TO ADD {}".format(new_tasks))
+            return new_tasks
+        else:
+            self.restore_to_last_decomposed_task(decomp_history)
+
+    def search(self, final_plan, tasks_to_process):
+        print("TASKS TO PROCESS: {}".format(tasks_to_process))
+        if not tasks_to_process:
+            return final_plan
+        else:
+            current_task = tasks_to_process.pop(0)
+            if self.world.find_type(current_task) == "CompoundTask":
+                new_tasks = self.explore_compound_task(current_task)
+                if new_tasks:
+                    tasks_to_process.extend(new_tasks)
+                    self.search(final_plan, tasks_to_process)
+                    #del tasks_to_process[:-len(new_tasks)]
+                else:
+                    tasks_to_process.append(current_task)
+                    self.search(final_plan, tasks_to_process)
+            else:  # Primitive task
+                if self.explore_primitive_task(current_task):
+                    self.world.apply_effects(current_task)
+                    self.search(final_plan, tasks_to_process)
+                    final_plan.insert(0, current_task)
+                else:
+                    tasks_to_process.append(current_task)
+                    self.search(final_plan, tasks_to_process)
+            return final_plan
+
 
     def create_plan(self, current_world):
         try:
-            world = DigitalWorld(current_world)
-            self.final_plan = []
-            self.decomp_history = []
-            self.tasks_to_process = world.root_task
-            while self.tasks_to_process:
-                print("TASKS TO PROCESS: {}".format(self.tasks_to_process))
-                current_task = self.tasks_to_process.pop(0)
-                print("CURRENT TASK: {}".format(current_task))
-                if world.find_type(current_task) == "CompoundTask":
-                    method = world.find_satisfied_method(current_task)
-                    test = True if method else False
-                    if method:
-                        self.record_decomposition_of_task(current_task, method)
-                        new_tasks = [task for task in world.find_subtasks(method) if task not in self.final_plan]
-                        print("NEW TASKS TO ADD {}".format(new_tasks))
-                        self.tasks_to_process.extend(new_tasks)
-                    else:
-                        self.restore_to_last_decomposed_task()
-                else:  # Primitive task
-                    if world.are_preconditions_met(current_task):
-                        print("Preconditions of {} are met".format(current_task))
-                        world.apply_effects(current_task)
-                        self.final_plan.append(current_task)
-                    else:
-                        print("Preconditions of {} are NOT MET".format(current_task))
-                        self.restore_to_last_decomposed_task()
+            self.world = DigitalWorld(current_world)
+            final_plan = []
+            tasks_to_process = self.world.root_task
+            final_plan = self.search(final_plan, tasks_to_process)
+            print("EXECUTE: {}".format(final_plan))
         except Exception as e:
             print(e)
 
@@ -73,9 +85,6 @@ def main(args=None):
     planner = Planner()
     world.send_command()
     planner.create_plan(world)
-    print("Final plan: {}".format(planner.final_plan))
-    time.sleep(1)
-
 
     rclpy.spin(planner)
 
