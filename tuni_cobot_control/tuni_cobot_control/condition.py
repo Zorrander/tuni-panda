@@ -1,16 +1,26 @@
 from owlready2 import *
 
-class ReceivedHandoverCommand(Thing):
+class ReceivedCommand(Thing):
     def evaluate(self, world, robot):
-        cmd = world.search_one(type = world['http://onto-server-tuni.herokuapp.com/Panda#HandoverCommand'])
+        cmd = world.search_one(type = world['http://onto-server-tuni.herokuapp.com/Panda#Command'])
         if cmd:
+            method = world.search_one(is_a = world['http://onto-server-tuni.herokuapp.com/Panda#CommandMethod'])
+            if cmd.has_action=="give":
+                method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#HandoverTask']
+            elif cmd.has_action=="release":
+                method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#ReleaseTask']
             destroy_entity(cmd)
             return True
         else:
             return False
 
+class IsWaitingForSomething(Thing):
+    def evaluate(self, world, robot):
+        return True if ('isWaitingForSomething' in robot.__dict__ and robot.isHoldingSomething == True) else False
+
 class IsHoldingSomething(Thing):
-    def evaluate(self, world,robot):
+    def evaluate(self, world, robot):
+        print(robot.name)
         return True if ('isHoldingSomething' in robot.__dict__ and robot.isHoldingSomething == True) else False
 
 class IsNotHoldingSomething(Thing):

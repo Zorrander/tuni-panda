@@ -1,25 +1,25 @@
 from tuni_cobot_control.state import *
 from tuni_cobot_control import condition, operator, robot
-import time
+import copy
 
 class DigitalWorld():
 
     def __init__(self, original_world=None):
         if original_world:
-            self.world = original_world.world
+            self.world = copy.copy(original_world.world)
+            self.robot = copy.copy(original_world.robot)
         else:
             self.world = World()
             self.world.get_ontology("file:///home/alex/handover.owl").load()
             self.world['http://onto-server-tuni.herokuapp.com/Panda#Robot']()
-            #self.world.get_ontology("http://onto-server-tuni.herokuapp.com/Panda/data").load()
+            with self.world.ontologies['http://onto-server-tuni.herokuapp.com/Panda#']:
+                self.robot = robot.Robot()
+
         self.root_task = [self.world['http://onto-server-tuni.herokuapp.com/Panda#Be']]
 
-        with self.world.ontologies['http://onto-server-tuni.herokuapp.com/Panda#']:
-            self.robot = robot.Robot()
-
-    def send_command(self):
-        cmd = self.world['http://onto-server-tuni.herokuapp.com/Panda#HandoverCommand']()
-        cmd.has_action = "give"
+    def send_command(self, command):
+        cmd = self.world['http://onto-server-tuni.herokuapp.com/Panda#Command']()
+        cmd.has_action = command
 
     def find_type(self, task):
         result = "CompoundTask"
@@ -53,6 +53,7 @@ class DigitalWorld():
             for conditions in primitive.INDIRECT_hasCondition:
                 c = getattr(condition, conditions.name)
                 if not c().evaluate(self.world, self.robot):
+                        print("{} IS NOT MET".format(conditions.name))
                         result = False
             return result
 

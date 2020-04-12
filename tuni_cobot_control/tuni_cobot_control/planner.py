@@ -3,6 +3,73 @@ from rclpy.node import Node
 import time
 import copy
 from tuni_cobot_control.world import DigitalWorld
+from cmd import Cmd
+
+class MyPrompt(Cmd):
+    def __init__(self):
+        super(MyPrompt, self).__init__()
+        self.world = DigitalWorld()
+        self.planner = Planner()
+        self.prompt = 'Panda> '
+        self.intro = """
+Collaborative Robotics Planning
+-------------------------------
+
+Type ? to list commands
+     plan - to reason about the current status of the world
+     handover - to send the corresponding command and plan
+     take - to simulate a human taking something from the robot
+     assembly - to plan for the Cranfield Assembly benchmark
+     packaging - to try cleaning the workspace putting all the objects in a box
+     status - to show the robot properties
+"""
+    def execute(self, primitive):
+        self.world.apply_effects(primitive)
+        print("RUN:{}".format(primitive))
+        time.sleep(2)
+        #self.sem_controller.interpret(primitive)
+
+    def run(self, plan):
+        try:
+            while plan:
+                primitive = plan.pop(0)
+                if self.world.are_preconditions_met(primitive):
+                    self.execute(primitive)
+                else:
+                    raise DispatchingError(primitive)
+        except DispatchingError as e:
+            new_plan = self.planner.create_plan(self.world)
+            self.run(new_plan)
+
+    def do_exit(self, inp):
+        # Destroy the node explicitly
+        # (optional - otherwise it will be done automatically
+        # when the garbage collector destroys the node object)
+        self.planner.destroy_node()
+        return True
+
+    def do_plan(self, inp):
+        plan = self.planner.create_plan(self.world)
+        self.run(plan)
+
+    def do_take(self, inp):
+        self.world.send_command('release')
+        plan = self.planner.create_plan(self.world)
+        self.run(plan)
+
+    def do_handover(self, inp):
+        self.world.send_command('give')
+        plan = self.planner.create_plan(self.world)
+        self.run(plan)
+
+    def do_packaging(self, inp):
+        print("Coming soon")
+
+    def do_assembly(self, inp):
+        print("Coming soon")
+
+    def do_status(self, inp):
+        self.world.robot.print_status()
 
 class DispatchingError(Exception):
    def __init__(self, primitive):
@@ -10,11 +77,11 @@ class DispatchingError(Exception):
 
 class Planner(Node):
 
-    def __init__(self, current_world):
+    def __init__(self):
         super().__init__('planner')
-        self.current_world = current_world
 
     def explore_primitive_task(self, current_task):
+        print("explore")
         return True if self.planning_world.are_preconditions_met(current_task) else False
 
     def explore_compound_task(self, current_task):
@@ -28,6 +95,7 @@ class Planner(Node):
             return final_plan
         else:
             current_task = tasks_to_process.pop(0)
+            print(current_task)
             if self.planning_world.find_type(current_task) == "CompoundTask":
                 new_tasks = self.explore_compound_task(current_task)
                 if new_tasks:
@@ -48,10 +116,11 @@ class Planner(Node):
             return final_plan
 
 
-    def create_plan(self):
+    def create_plan(self, current_world):
         try:
             final_plan = []
-            self.planning_world = DigitalWorld(self.current_world)
+            self.planning_world = DigitalWorld(current_world)
+            self.planning_world.robot.print_status()
             tasks_to_process = self.planning_world.root_task
             final_plan = self.search(final_plan, tasks_to_process)
             print("PLAN: {}".format(final_plan))
@@ -59,41 +128,11 @@ class Planner(Node):
         except Exception as e:
             print(e)
 
-    def execute(self, primitive):
-        self.current_world.apply_effects(primitive)
-        print("RUN:{}".format(primitive))
-        time.sleep(2)
-        #self.sem_controller.interpret(primitive)
-
-    def run(self, plan):
-        try:
-            print("EXECUTE: {}".format(plan))
-            while plan:
-                primitive = plan.pop(0)
-                if self.current_world.are_preconditions_met(primitive):
-                    self.execute(primitive)
-                else:
-                    raise DispatchingError(primitive)
-        except DispatchingError as e:
-            new_plan = self.create_plan()
-            self.run(new_plan)
 
 def main(args=None):
     rclpy.init(args=args)
-    world = DigitalWorld()
-    planner = Planner(world)
-    world.send_command()
-    while True:
-        plan = planner.create_plan()
-        planner.run(plan)
-        time.sleep(1)
-
-    rclpy.spin(planner)
-
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    planner.destroy_node()
+    MyPrompt().cmdloop()
+    #rclpy.spin(planner)
     rclpy.shutdown()
 
 

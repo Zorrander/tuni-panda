@@ -2,14 +2,21 @@ from owlready2 import *
 import time
 
 
-
 class IdleOperator(Thing):
     def run(self, world, primitive, robot):
-        return True
+        if primitive.name == "WaitForTask":
+            robot.wait_for()
+        elif primitive.name == "IdleTask" and robot.isWaitingForSomething:
+            print("Waiting...")
+        else:
+            print("Nothing to do for now...")
 
 class MoveOperator(Thing):
     def run(self, world, primitive, robot):
-        robot.move()
+        if primitive.name == "ReachTask":
+            robot.reach()
+        else:
+            robot.move()
 
 class OpenOperator(Thing):
     def run(self, world, primitive, robot):
