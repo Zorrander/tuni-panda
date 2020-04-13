@@ -58,12 +58,12 @@ class DigitalWorld():
 
     def are_effects_satisfied(self, task):
         with self.world.ontologies['http://onto-server-tuni.herokuapp.com/Panda#']:
-            result = False
+            result = True
             for effects in task.INDIRECT_hasEffect:
                 e = getattr(condition, effects.name)
                 if not e().evaluate(self.world, self.robot):
                     print("{} already satisfied".format(effects))
-                    result = True
+                    result = False
             return result
 
     def find_subtasks(self, method):

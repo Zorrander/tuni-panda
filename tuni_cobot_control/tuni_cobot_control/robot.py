@@ -9,13 +9,12 @@ class Robot(Thing):
         self.isCapableOfReaching = True
 
     def open_gripper(self):
-        del self.__dict__['isHoldingSomething']
+        self.isHoldingSomething = False
         if self.isWaitingForSomething:
             self.isWaitingForSomething = False
 
     def close_gripper(self):
         self.isHoldingSomething = True
-        del self.__dict__['isCapableOfReaching']
 
     def wait_for(self):
         self.isWaitingForSomething = True
