@@ -23,5 +23,5 @@ class Robot(Thing):
     def print_status(self):
         meta = ['namespace', 'storid']
         for key in self.__dict__:
-            if not key[0] == "_" and not key in meta:
+            if not key in meta:
                 print("{} - {}".format(key, self.__dict__[key]))

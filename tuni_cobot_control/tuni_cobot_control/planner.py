@@ -57,6 +57,24 @@ Type ? to list commands
         plan = self.planner.create_plan(self.world)
         self.run(plan)
 
+    def do_pick(self, inp):
+        self.world.send_command('pick')
+        plan = self.planner.create_plan(self.world)
+        self.run(plan)
+
+    def do_grasp(self, inp):
+        self.world.send_command('grasp')
+        plan = self.planner.create_plan(self.world)
+        self.run(plan)
+
+    def do_reach(self, inp):
+        self.world.send_command('reach')
+        plan = self.planner.create_plan(self.world)
+        self.run(plan)
+
+    def do_leads_to(self, inp):
+        self.world.leads_to(inp)
+
     def do_handover(self, inp):
         self.world.send_command('give')
         plan = self.planner.create_plan(self.world)
@@ -80,9 +98,11 @@ class Planner(Node):
     def __init__(self):
         super().__init__('planner')
 
-    def explore_primitive_task(self, current_task):
-        print("explore")
+    def explore_cond_primitive_task(self, current_task):
         return True if self.planning_world.are_preconditions_met(current_task) else False
+
+    def explore_effects_primitive_task(self, current_task):
+        return True if self.planning_world.are_effects_satisfied(current_task) else False
 
     def explore_compound_task(self, current_task):
         method = self.planning_world.find_satisfied_method(current_task)
@@ -106,12 +126,17 @@ class Planner(Node):
                     tasks_to_process.append(current_task)
                     self.search(final_plan, tasks_to_process)
             else:  # Primitive task
-                if self.explore_primitive_task(current_task):
+                if self.explore_cond_primitive_task(current_task):
                     self.planning_world.apply_effects(current_task)
                     self.search(final_plan, tasks_to_process)
                     final_plan.insert(0, current_task)
                 else:
-                    tasks_to_process.append(current_task)
+                    if not self.explore_effects_primitive_task(current_task):
+                        print(final_plan)
+                        print(tasks_to_process)
+                        tasks_to_process.append(current_task)
+                    else:
+                        print("cancel {} because the goal is already reached".format(current_task))
                     self.search(final_plan, tasks_to_process)
             return final_plan
 

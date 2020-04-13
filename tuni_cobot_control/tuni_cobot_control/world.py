@@ -53,8 +53,17 @@ class DigitalWorld():
             for conditions in primitive.INDIRECT_hasCondition:
                 c = getattr(condition, conditions.name)
                 if not c().evaluate(self.world, self.robot):
-                        print("{} IS NOT MET".format(conditions.name))
                         result = False
+            return result
+
+    def are_effects_satisfied(self, task):
+        with self.world.ontologies['http://onto-server-tuni.herokuapp.com/Panda#']:
+            result = False
+            for effects in task.INDIRECT_hasEffect:
+                e = getattr(condition, effects.name)
+                if not e().evaluate(self.world, self.robot):
+                    print("{} already satisfied".format(effects))
+                    result = True
             return result
 
     def find_subtasks(self, method):

@@ -9,6 +9,12 @@ class ReceivedCommand(Thing):
                 method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#HandoverTask']
             elif cmd.has_action=="release":
                 method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#ReleaseTask']
+            elif cmd.has_action=="grasp":
+                method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#GraspTask']
+            elif cmd.has_action=="reach":
+                method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#ReachTask']
+            elif cmd.has_action=="pick":
+                method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#PickTask']
             destroy_entity(cmd)
             return True
         else:
@@ -28,8 +34,10 @@ class IsNotHoldingSomething(Thing):
         return True if (not 'isHoldingSomething' in robot.__dict__ or robot.isHoldingSomething == False) else False
 
 class IsCapableOfReaching(Thing):
-    def evaluate(self, world,robot):
-        return True if ('isCapableOfReaching' in robot.__dict__ and robot.isCapableOfReaching == True) else False
+    def evaluate(self, world, robot):
+        result = True if ('isCapableOfReaching' in robot.__dict__ and robot.isCapableOfReaching == True) else False
+        print(result)
+        return result
 
 class IsNotCapableOfReaching(Thing):
     def evaluate(self, world,robot):
