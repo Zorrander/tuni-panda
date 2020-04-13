@@ -58,25 +58,29 @@ Type ? to list commands
         self.run(plan)
 
     def do_pick(self, inp):
-        self.world.send_command('pick')
+        self.world.send_command('pick', inp)
         plan = self.planner.create_plan(self.world)
         self.run(plan)
 
     def do_grasp(self, inp):
-        self.world.send_command('grasp')
+        self.world.send_command('grasp', inp)
         plan = self.planner.create_plan(self.world)
         self.run(plan)
 
     def do_reach(self, inp):
-        self.world.send_command('reach')
-        plan = self.planner.create_plan(self.world)
-        self.run(plan)
+        try:
+            print("Reaching {}".format(inp))
+            self.world.send_command('reach', inp)
+            plan = self.planner.create_plan(self.world)
+            self.run(plan)
+        except AnchoringError as e:
+            print("Could not understand {}".format(e.object))
 
     def do_leads_to(self, inp):
         self.world.leads_to(inp)
 
     def do_handover(self, inp):
-        self.world.send_command('give')
+        self.world.send_command('give', inp)
         plan = self.planner.create_plan(self.world)
         self.run(plan)
 
@@ -115,7 +119,6 @@ class Planner(Node):
             return final_plan
         else:
             current_task = tasks_to_process.pop(0)
-            print(current_task)
             if self.planning_world.find_type(current_task) == "CompoundTask":
                 new_tasks = self.explore_compound_task(current_task)
                 if new_tasks:
@@ -132,11 +135,8 @@ class Planner(Node):
                     final_plan.insert(0, current_task)
                 else:
                     if not self.explore_effects_primitive_task(current_task):
-                        print(final_plan)
-                        print(tasks_to_process)
+                        print("cancel move")
                         tasks_to_process.append(current_task)
-                    else:
-                        print("cancel {} because the goal is already reached".format(current_task))
                     self.search(final_plan, tasks_to_process)
             return final_plan
 
@@ -145,7 +145,6 @@ class Planner(Node):
         try:
             final_plan = []
             self.planning_world = DigitalWorld(current_world)
-            self.planning_world.robot.print_status()
             tasks_to_process = self.planning_world.root_task
             final_plan = self.search(final_plan, tasks_to_process)
             print("PLAN: {}".format(final_plan))

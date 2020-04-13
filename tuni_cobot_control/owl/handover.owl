@@ -22,6 +22,12 @@
     
 
 
+    <!-- http://onto-server-tuni.herokuapp.com/Panda#fuzzyLabel -->
+
+    <owl:AnnotationProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#fuzzyLabel"/>
+    
+
+
     <!-- http://onto-server-tuni.herokuapp.com/Panda#python_module -->
 
     <owl:AnnotationProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#python_module"/>
@@ -69,52 +75,9 @@
     
 
 
-    <!-- http://onto-server-tuni.herokuapp.com/Panda#impliesCommitment -->
-
-    <owl:ObjectProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#impliesCommitment"/>
-    
-
-
-    <!-- http://onto-server-tuni.herokuapp.com/Panda#isCausedBy -->
-
-    <owl:ObjectProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#isCausedBy">
-        <rdfs:domain rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#Task"/>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://onto-server-tuni.herokuapp.com/Panda#isHolding -->
-
-    <owl:ObjectProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#isHolding">
-        <rdfs:domain rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#Actor"/>
-        <rdfs:range rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#Object"/>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://onto-server-tuni.herokuapp.com/Panda#isInReachOf -->
-
-    <owl:ObjectProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#isInReachOf"/>
-    
-
-
     <!-- http://onto-server-tuni.herokuapp.com/Panda#useOperator -->
 
     <owl:ObjectProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#useOperator"/>
-    
-
-
-    <!-- http://onto-server-tuni.herokuapp.com/Panda#withPath -->
-
-    <owl:ObjectProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#withPath"/>
-    
-
-
-    <!-- http://onto-server-tuni.herokuapp.com/Panda#withPlace -->
-
-    <owl:ObjectProperty rdf:about="http://onto-server-tuni.herokuapp.com/Panda#withPlace">
-        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
-    </owl:ObjectProperty>
     
 
 
@@ -249,6 +212,14 @@
     
 
 
+    <!-- http://onto-server-tuni.herokuapp.com/Panda#AssemblyMethod -->
+
+    <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#AssemblyMethod">
+        <rdfs:subClassOf rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#Method"/>
+    </owl:Class>
+    
+
+
     <!-- http://onto-server-tuni.herokuapp.com/Panda#Be -->
 
     <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#Be">
@@ -266,6 +237,20 @@
                     </owl:Restriction>
                 </owl:intersectionOf>
             </owl:Class>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://onto-server-tuni.herokuapp.com/Panda#Box -->
+
+    <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#Box">
+        <rdfs:subClassOf rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#Object"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#is_called"/>
+                <owl:hasValue>box</owl:hasValue>
+            </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
     
@@ -330,6 +315,14 @@
                 <owl:hasValue>cup</owl:hasValue>
             </owl:Restriction>
         </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://onto-server-tuni.herokuapp.com/Panda#EmptyWorkspace -->
+
+    <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#EmptyWorkspace">
+        <rdfs:subClassOf rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#State"/>
     </owl:Class>
     
 
@@ -638,6 +631,26 @@
     
 
 
+    <!-- http://onto-server-tuni.herokuapp.com/Panda#PackagingMethod -->
+
+    <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#PackagingMethod">
+        <rdfs:subClassOf rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#Method"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#hasSubtask"/>
+                <owl:someValuesFrom rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#EmptyWorkspace"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#hasPriority"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
     <!-- http://onto-server-tuni.herokuapp.com/Panda#Parts -->
 
     <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#Parts">
@@ -706,6 +719,22 @@
 
     <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#PlaceFunction">
         <rdfs:subClassOf rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#SpatialPlace"/>
+    </owl:Class>
+    
+
+
+    <!-- http://onto-server-tuni.herokuapp.com/Panda#PlaceMethod -->
+
+    <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#PlaceMethod">
+        <rdfs:subClassOf rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#Method"/>
+    </owl:Class>
+    
+
+
+    <!-- http://onto-server-tuni.herokuapp.com/Panda#PlaceTask -->
+
+    <owl:Class rdf:about="http://onto-server-tuni.herokuapp.com/Panda#PlaceTask">
+        <rdfs:subClassOf rdf:resource="http://onto-server-tuni.herokuapp.com/Panda#CompoundTask"/>
     </owl:Class>
     
 

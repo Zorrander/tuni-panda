@@ -17,9 +17,11 @@ class DigitalWorld():
 
         self.root_task = [self.world['http://onto-server-tuni.herokuapp.com/Panda#Be']]
 
-    def send_command(self, command):
+    def send_command(self, command, target=None):
         cmd = self.world['http://onto-server-tuni.herokuapp.com/Panda#Command']()
         cmd.has_action = command
+        if target:
+            cmd.has_target = target
 
     def find_type(self, task):
         result = "CompoundTask"
@@ -58,12 +60,12 @@ class DigitalWorld():
 
     def are_effects_satisfied(self, task):
         with self.world.ontologies['http://onto-server-tuni.herokuapp.com/Panda#']:
-            result = True
+            result = False
             for effects in task.INDIRECT_hasEffect:
                 e = getattr(condition, effects.name)
-                if not e().evaluate(self.world, self.robot):
+                if e().evaluate(self.world, self.robot):
                     print("{} already satisfied".format(effects))
-                    result = False
+                    result = True
             return result
 
     def find_subtasks(self, method):
