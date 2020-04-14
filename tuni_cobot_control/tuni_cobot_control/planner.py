@@ -4,6 +4,7 @@ import time
 import copy
 from tuni_cobot_control.world import DigitalWorld
 from cmd import Cmd
+from tuni_cobot_control import properties, world
 
 class MyPrompt(Cmd):
     def __init__(self):
@@ -15,31 +16,49 @@ class MyPrompt(Cmd):
 Collaborative Robotics Planning
 -------------------------------
 
-Type ? to list commands
+Commands:
+     add (obj)
+     workspace_status
      plan - to reason about the current status of the world
-     handover - to send the corresponding command and plan
+     handover (obj) - to send the corresponding command and plan
+     pick (obj)
+     reach (obj)
+     grasp (obj)
      take - to simulate a human taking something from the robot
      assembly - to plan for the Cranfield Assembly benchmark
      packaging - to try cleaning the workspace putting all the objects in a box
      status - to show the robot properties
+     help
 """
     def execute(self, primitive):
-        self.world.apply_effects(primitive)
-        print("RUN:{}".format(primitive))
-        time.sleep(2)
-        #self.sem_controller.interpret(primitive)
-
-    def run(self, plan):
         try:
-            while plan:
+            self.world.apply_effects(primitive)
+            print("RUN:{}".format(primitive))
+            time.sleep(2)
+            #self.sem_controller.interpret(primitive)
+        except:
+            raise DispatchingError(primitive)
+
+    def run(self, plan, goal_state = False):
+        try:
+            while plan and not self.world.check_state(goal_state):
+                print("plan")
+                print(plan)
                 primitive = plan.pop(0)
-                if self.world.are_preconditions_met(primitive):
-                    self.execute(primitive)
+                print(primitive)
+                if primitive.is_a[0].name == "State":
+                    goal_state = primitive
+                    plan.extend(self.planner.inverse_planning(primitive))
                 else:
-                    raise DispatchingError(primitive)
+                    if self.world.are_preconditions_met(primitive):
+                        self.execute(primitive)
+                    else:
+                        raise DispatchingError(primitive)
         except DispatchingError as e:
-            new_plan = self.planner.create_plan(self.world)
-            self.run(new_plan)
+            print("caught error")
+            print([e.primitive])
+            new_plan = self.planner.create_plan(self.world, [e.primitive])
+            self.run(new_plan, goal_state)
 
     def do_exit(self, inp):
         # Destroy the node explicitly
@@ -51,6 +70,16 @@ Type ? to list commands
     def do_plan(self, inp):
         plan = self.planner.create_plan(self.world)
         self.run(plan)
+
+    def do_add(self, inp):
+        self.world.add_object(inp)
+
+    def do_workspace_status(self, inp):
+        self.world.workspace.print_status()
+        if self.world.is_workspace_empty():
+            print("Workspace is empty")
+        else:
+            print("Workspace is not empty")
 
     def do_take(self, inp):
         self.world.send_command('release')
@@ -85,7 +114,9 @@ Type ? to list commands
         self.run(plan)
 
     def do_packaging(self, inp):
-        print("Coming soon")
+        self.world.send_command('clean')
+        plan = self.planner.create_plan(self.world)
+        self.run(plan)
 
     def do_assembly(self, inp):
         print("Coming soon")
@@ -115,13 +146,17 @@ class Planner(Node):
             return new_tasks
 
     def search(self, final_plan, tasks_to_process):
+        print("Creating plan about")
+        print(tasks_to_process)
         if not tasks_to_process:
             return final_plan
         else:
             current_task = tasks_to_process.pop(0)
             if self.planning_world.find_type(current_task) == "CompoundTask":
                 new_tasks = self.explore_compound_task(current_task)
-                if new_tasks:
+                if len(new_tasks) == 1 and new_tasks[0].is_a[0].name == "State":
+                    final_plan.insert(0, new_tasks[0])
+                elif new_tasks:
                     tasks_to_process.extend(new_tasks)
                     self.search(final_plan, tasks_to_process)
                     #del tasks_to_process[:-len(new_tasks)]
@@ -141,10 +176,10 @@ class Planner(Node):
             return final_plan
 
 
-    def create_plan(self, current_world):
+    def create_plan(self, current_world, root_task=None):
         try:
             final_plan = []
-            self.planning_world = DigitalWorld(current_world)
+            self.planning_world = DigitalWorld(current_world, root_task)
             tasks_to_process = self.planning_world.root_task
             final_plan = self.search(final_plan, tasks_to_process)
             print("PLAN: {}".format(final_plan))
@@ -152,6 +187,13 @@ class Planner(Node):
         except Exception as e:
             print(e)
 
+    def inverse_planning(self, primitive, final_plan=None):
+        print(primitive.is_a[1].__dict__)
+        constraint = primitive.is_a[1]
+        fun = getattr(self.planning_world.workspace, "test_"+constraint.property.name)
+        comparator = getattr(properties, constraint.property.name)
+        diff = comparator.compare(fun(), constraint)
+        return self.planning_world.resolve_conflicts(diff)
 
 def main(args=None):
     rclpy.init(args=args)

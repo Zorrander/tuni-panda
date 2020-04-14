@@ -1,4 +1,5 @@
 from owlready2 import *
+from tuni_cobot_control.workspace import Workspace
 
 
 class AnchoringError(Exception):
@@ -10,7 +11,7 @@ class SymbolGroundingError(Exception):
       self.action_symbol = action_symbol
 
 class ReceivedCommand(Thing):
-    def evaluate(self, world, robot):
+    def evaluate(self, world, robot, workspace):
         cmd = world.search_one(type = world['http://onto-server-tuni.herokuapp.com/Panda#Command'])
         if cmd:
             method = world.search_one(is_a = world['http://onto-server-tuni.herokuapp.com/Panda#CommandMethod'])
@@ -25,9 +26,11 @@ class ReceivedCommand(Thing):
                     print("anchoring {}".format(anchored[0]))
                 else:
                     #raise AnchoringError(cmd.has_target)
-                    return False  
+                    return False
             if cmd.has_action=="give":
                 method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#HandoverTask']
+            elif cmd.has_action=="clean":
+                method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#PackagingTask']
             elif cmd.has_action=="release":
                 method.hasSubtask = world['http://onto-server-tuni.herokuapp.com/Panda#ReleaseTask']
             elif cmd.has_action=="grasp":
@@ -43,31 +46,35 @@ class ReceivedCommand(Thing):
             #raise SymbolGroundingError(cmd.has_action)
             return False
 
+class EmptyWorkspace(Thing):
+    def evaluate(self, world, robot, workspace):
+        return workspace.is_empty()
+
 class IsWaitingForSomething(Thing):
-    def evaluate(self, world, robot):
+    def evaluate(self, world, robot, workspace):
         return True if ('isWaitingForSomething' in robot.__dict__ and robot.isHoldingSomething == True) else False
 
 class IsHoldingSomething(Thing):
-    def evaluate(self, world, robot):
+    def evaluate(self, world, robot, workspace):
         return True if ('isHoldingSomething' in robot.__dict__ and robot.isHoldingSomething == True) else False
 
 class IsNotHoldingSomething(Thing):
-    def evaluate(self, world,robot):
+    def evaluate(self, world,robot, workspace):
         return True if (not 'isHoldingSomething' in robot.__dict__ or robot.isHoldingSomething == False) else False
 
 class IsCapableOfReaching(Thing):
-    def evaluate(self, world, robot):
+    def evaluate(self, world, robot, workspace):
         result = True if ('isCapableOfReaching' in robot.__dict__ and robot.isCapableOfReaching == True) else False
         return result
 
 class IsNotCapableOfReaching(Thing):
-    def evaluate(self, world,robot):
+    def evaluate(self, world,robot, workspace):
         return True if (not 'isCapableOfReaching' in robot.__dict__ or robot.isCapableOfReaching == False) else False
 
 class IsReadyToBeTaken(Thing):
-    def evaluate(self, world,robot):
+    def evaluate(self, world,robot, workspace):
         return False
 
 class IsNotReadyToBeTaken(Thing):
-    def evaluate(self, world,robot):
+    def evaluate(self, world,robot, workspace):
         pass
