@@ -1,0 +1,4 @@
+# A custom controller for test
+test_controller:
+    type: cobot_controllers/CartesianPoseController
+    arm_id: panda
