@@ -61,6 +61,7 @@ add_service_files(
   NamedTarget.srv
   RobotSpeed.srv
   MoveGripper.srv
+  ListTargets.srv
   Grasp.srv
   TagPose.srv
 )

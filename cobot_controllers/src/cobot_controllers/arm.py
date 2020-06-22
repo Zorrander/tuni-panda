@@ -3,6 +3,13 @@ from tf.transformations import *
 import sys
 import moveit_commander
 import math
+import yaml
+import os.path
+from os.path import expanduser
+
+home = expanduser("~")
+
+RESOURCE_PATH  = os.path.join(home, "ros", "src", "tuni-panda", "cobot_controllers", "config")
 
 class Arm(object):
     def __init__(self):
@@ -11,17 +18,44 @@ class Arm(object):
       self.robot = moveit_commander.RobotCommander()
       self.scene = moveit_commander.PlanningSceneInterface()
       self.group = moveit_commander.MoveGroupCommander(group_name)
+      with open(os.path.join(RESOURCE_PATH, "pose-configuration.yaml"), 'r') as file:
+          conf = yaml.load(file) or {}
+      print("CURRENT TARGET LIST")
+      print(conf)
+      for key, value in conf.items():
+          print("remembering")
+          print(key)
+          print(value)
+          self.group.remember_joint_values(key, value)
 
     def set_speed(self, speed_factor):
         ''' Modify max speed of the arm by a speed factor ranging from 0 to 1.'''
         self.group.set_max_velocity_scaling_factor(speed_factor)
 
+    def list_targets(self):
+        return self.group.get_named_targets()
+
     def store_position(self, name):
-        self.group.remember_joint_values(name)
+        dict_file = {name : self.group.get_current_joint_values()}
+        with open(os.path.join(RESOURCE_PATH, "pose-configuration.yaml"), 'r') as file:
+            conf = yaml.load(file) or {}
+        conf.update(dict_file)
+        print("CURRENT TARGET LIST")
+        print(conf)
+        with open(os.path.join(RESOURCE_PATH, "pose-configuration.yaml"), "w") as file:
+            documents = yaml.dump(conf, file)
+
+        #self.group.remember_joint_values(name)
 
     def move_to(self, target_name):
         ''' Send robot to a predefined position'''
         try:
+            #print("are you even listening")
+            #print(self.group.get_goal_tolerance())
+            #self.group.set_goal_tolerance(2.0)
+            #print(self.group.get_goal_tolerance())
+            print("Current pose")
+            print()
             self.group.set_named_target(target_name)
             self.group.go()
             self.group.stop()

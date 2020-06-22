@@ -34,6 +34,10 @@ def set_speed(request, robot):
     robot.set_speed(request.speed_factor)
     return RobotSpeedResponse(True)
 
+def list_targets(request, robot):
+    print("Received request")
+    return ListTargetsResponse(robot.list_targets())
+
 if __name__ == '__main__':
     rospy.init_node('panda_arm_control')
     panda_arm = Arm()
@@ -43,6 +47,7 @@ if __name__ == '__main__':
     s = rospy.Service('move_to', NamedTarget, lambda msg: move_to(msg,panda_arm) )
     s = rospy.Service("store_position", NamedTarget, lambda msg: store_position(msg,panda_arm) )
     s = rospy.Service('set_speed', RobotSpeed, lambda msg: set_speed(msg,panda_arm) )
+    s = rospy.Service('get_targets', ListTargets, lambda msg: list_targets(msg,panda_arm) )
 
     print("Arm ready")
     rospy.spin()
