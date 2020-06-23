@@ -26,17 +26,25 @@ class Arm(object):
           print("remembering")
           print(key)
           print(value)
+          print("Before")
+          print(self.group.get_named_targets())
           self.group.remember_joint_values(key, value)
+          print("After")
+          print(self.group.get_named_targets())
 
     def set_speed(self, speed_factor):
         ''' Modify max speed of the arm by a speed factor ranging from 0 to 1.'''
         self.group.set_max_velocity_scaling_factor(speed_factor)
 
     def list_targets(self):
-        return self.group.get_named_targets()
+        print(self.group.get_remembered_joint_values(self.group.get_end_effector_link()))
+        return self.group.get_remembered_joint_values()
 
     def store_position(self, name):
         dict_file = {name : self.group.get_current_joint_values()}
+        print("Adding")
+        # print(self.group.get_current_joint_values())
+        print(self.group.get_current_pose())
         with open(os.path.join(RESOURCE_PATH, "pose-configuration.yaml"), 'r') as file:
             conf = yaml.load(file) or {}
         conf.update(dict_file)
