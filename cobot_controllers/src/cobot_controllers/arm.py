@@ -9,7 +9,7 @@ from os.path import expanduser
 
 home = expanduser("~")
 
-RESOURCE_PATH  = os.path.join(home, "ros", "src", "tuni-panda", "cobot_controllers", "config")
+RESOURCE_PATH  = os.path.join(home, "ros_ws", "robot_catkin_ws", "src", "tuni-panda", "cobot_controllers", "config")
 
 class Arm(object):
     def __init__(self):

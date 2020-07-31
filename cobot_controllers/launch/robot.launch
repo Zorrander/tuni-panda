@@ -9,7 +9,7 @@
     <arg name="load_gripper" value="$(arg load_gripper)" />
   </include>
 
-  <rosparam command="load" file="$(find cobot_controllers)/config/pose-configuration.yaml" />
+  <!--<rosparam command="load" file="$(find cobot_controllers)/config/pose-configuration.yaml" /> -->
 
   <node name="panda_gripper_control" type="gripper.py" pkg="cobot_controllers" output="screen" />
 
