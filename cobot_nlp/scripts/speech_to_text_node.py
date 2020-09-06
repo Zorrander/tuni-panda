@@ -46,7 +46,7 @@ if __name__ == '__main__':
     rospy.init_node('speech_to_text_input')
     try:
         r = sr.Recognizer()
-        m = sr.Microphone(device_index=11)
+        m = sr.Microphone()
         with m as source:
             r.adjust_for_ambient_noise(source, duration=2)
             while not rospy.is_shutdown():
