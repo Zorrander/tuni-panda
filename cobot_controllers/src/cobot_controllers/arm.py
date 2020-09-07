@@ -52,29 +52,36 @@ class Arm(object):
         except Exception as e:
             print(e)
 
-    def go_to_cartesian_goal(self, type):
+    def go_to_cartesian_goal(self, point):
         print("go_to_cartesian_goal")
         try:
-            if type == 0:
-                with open(os.path.join(RESOURCE_PATH, "pose-configuration.yaml"), 'r') as file:
-                    conf = yaml.load(file) or {}
-                    goal = conf['storage_ee']['position']
-                    # ---
-                    next_point = self.group.get_current_pose().pose
-                    next_point.position.x = goal[0]
-                    next_point.position.y = goal[1]
-                    self.group.set_pose_target(next_point)
-                    plan = self.group.go(wait=True)
-                    self.group.stop()
-                    self.group.clear_pose_targets()
-                    # ---
-                    next_point.position.z = goal[2]
-                    self.group.set_pose_target(next_point)
-                    plan = self.group.go(wait=True)
-                    self.group.stop()
-                    self.group.clear_pose_targets()
-            elif type == 1:
-                self.move_to("handover")
+            next_point = self.group.get_current_pose().pose
+            if next_point.position.z > point.z: # We need to lower the arm
+                next_point.position.x = point.x
+                next_point.position.y = point.y
+                self.group.set_pose_target(next_point)
+                plan = self.group.go(wait=True)
+                self.group.stop()
+                self.group.clear_pose_targets()
+                # ---
+                next_point.position.z = point.z
+                self.group.set_pose_target(next_point)
+                plan = self.group.go(wait=True)
+                self.group.stop()
+                self.group.clear_pose_targets()
+            else:  # We need to move the arm up
+                next_point.position.z = point.z
+                self.group.set_pose_target(next_point)
+                plan = self.group.go(wait=True)
+                self.group.stop()
+                self.group.clear_pose_targets()
+                # ---
+                next_point.position.x = point.x
+                next_point.position.y = point.y
+                self.group.set_pose_target(next_point)
+                plan = self.group.go(wait=True)
+                self.group.stop()
+                self.group.clear_pose_targets()
         except Exception as e:
             print(e)
 

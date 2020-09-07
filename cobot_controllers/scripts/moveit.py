@@ -22,7 +22,7 @@ def go_to_joint_space_goal(request, robot):
 def go_to_cartesian_goal(request, robot):
     print("RECEIVED REQUEST")
     print(request)
-    robot.go_to_cartesian_goal(request.type)
+    robot.go_to_cartesian_goal(request.point)
     return ReachCartesianPoseResponse(True)
 
 def move_to(request, robot):

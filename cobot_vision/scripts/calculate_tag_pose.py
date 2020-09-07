@@ -3,7 +3,7 @@
 import rospy
 from cobot_msgs.srv import TagPose, TagPoseResponse
 from apriltag_ros.msg import AprilTagDetectionArray
-from geometry_msgs.msg import PoseStamped, Pose
+from geometry_msgs.msg import PoseStamped, Pose, Point
 import tf
 
 class TagPoseServer(object):
@@ -49,7 +49,7 @@ class TagPoseServer(object):
                 print("obstacle")
                 transformed_pose = self.tranform(tag.pose.pose.pose)
                 self.obstacle_pub.publish(transformed_pose.pose.position)
-            elif tag.id[0] in [4,5]:
+            elif tag.id[0] in [4, 5]:
                 print("target")
                 transformed_pose = self.tranform(tag.pose.pose.pose)
                 self.target_pub.publish(transformed_pose.pose.position)

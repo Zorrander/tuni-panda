@@ -41,8 +41,13 @@ class Gripper():
     def stop(self):
         pass
 
-    def grasp(self, force, width, speed=20.0, epsilon_inner=0.001, epsilon_outer=0.001):
+    def grasp(self, force, width, speed=20.0, epsilon_inner=0.01, epsilon_outer=0.01):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
+        print("""
+            Grasping with
+            {}
+            {}
+        """.format(force, width))
         self.grasp_client.send_goal(
             franka_gripper.msg.GraspGoal(
                 width,
