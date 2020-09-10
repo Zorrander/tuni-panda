@@ -16,4 +16,14 @@
       Demonstrate reach
     </description>
   </class>
+
+
+  <class  name="cobot_controllers/JointPositionController"
+          type="cobot_controllers::JointPositionController"
+          base_class_type="controller_interface::ControllerBase">
+
+    <description>
+      Demonstrate reach
+    </description>
+  </class>
 </library>

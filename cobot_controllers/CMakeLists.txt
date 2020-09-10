@@ -39,4 +39,5 @@ include_directories(
 add_library(cobot_controllers
     src/cartesian_pose_controller.cpp
     src/cartesian_velocity_controller.cpp
+    src/joint_position_controller.cpp
 )
