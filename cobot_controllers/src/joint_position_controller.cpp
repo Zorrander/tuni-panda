@@ -4,6 +4,14 @@
 
 #include <cmath>
 
+#include <tf/tf.h>
+#include <tf/transform_listener.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
+#include <geometry_msgs/Pose.h>
+
 #include <controller_interface/controller_base.h>
 #include <hardware_interface/hardware_interface.h>
 #include <hardware_interface/joint_command_interface.h>
@@ -51,28 +59,52 @@ bool JointPositionController::init(hardware_interface::RobotHW* robot_hardware,
     }
   }
 
+  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+  kinematic_model = robot_model_loader.getModel();
+  ROS_INFO("Model frame: %s", kinematic_model->getModelFrame().c_str());
+  robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
+  joint_model_group = kinematic_model->getJointModelGroup("panda_arm");
   return true;
 }
 
 void JointPositionController::starting(const ros::Time& /* time */) {
-  for (size_t i = 0; i < 7; ++i) {
-    initial_pose_[i] = position_joint_handles_[i].getPosition();
-  }
-  elapsed_time_ = ros::Duration(0.0);
+  ROS_INFO("Starting");
+  geometry_msgs::Pose pose ;
+  pose.position.x = 0.46 ;
+  pose.position.y = 0.01 ;
+  pose.position.z = 0.20 ;
+
+  Eigen::Isometry3d goal_pose_ = Eigen::Isometry3d() ;
+  tf::poseMsgToEigen(pose, goal_pose_);
+
+  current_joint_values.reserve(7);
 }
 
 void JointPositionController::update(const ros::Time& /*time*/,
                                             const ros::Duration& period) {
-  elapsed_time_ += period;
 
-  double delta_angle = M_PI / 16 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec())) * 0.2;
   for (size_t i = 0; i < 7; ++i) {
-    if (i == 4) {
-      position_joint_handles_[i].setCommand(initial_pose_[i] - delta_angle);
-    } else {
-      position_joint_handles_[i].setCommand(initial_pose_[i] + delta_angle);
-    }
+      ROS_INFO_STREAM("current_joint_values[" << i << "] = " << position_joint_handles_[i].getPosition());
+      current_joint_values[i] = position_joint_handles_[i].getPosition();
   }
+
+  ROS_INFO("Look for IK solution");
+  kinematic_state->setJointGroupPositions(joint_model_group, current_joint_values);
+
+  double timeout = 0.1;
+  bool found_ik = kinematic_state->setFromIK(joint_model_group, goal_pose_, timeout);
+
+  // Now, we can print out the IK solution (if found):
+  if (found_ik)
+  {
+    ROS_INFO("Did find IK solution");
+
+  }
+  else
+  {
+    ROS_INFO("Did not find IK solution");
+  }
+
 }
 
 }  // namespace cobot_controllers

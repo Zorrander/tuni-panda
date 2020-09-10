@@ -13,9 +13,14 @@
   <depend>pluginlib</depend>
   <depend>franka_hw</depend>
   <depend>roscpp</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>tf</depend>
+  <depend>tf_conversions</depend>
+  <depend>eigen_conversions</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
-  
+
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 

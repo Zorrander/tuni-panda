@@ -6,6 +6,14 @@
 #include <string>
 #include <vector>
 
+#include <tf/tf.h>
+#include <tf/transform_listener.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
+#include <geometry_msgs/Pose.h>
+
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/robot_hw.h>
@@ -26,6 +34,15 @@ class JointPositionController : public controller_interface::MultiInterfaceContr
   std::vector<hardware_interface::JointHandle> position_joint_handles_;
   ros::Duration elapsed_time_;
   std::array<double, 7> initial_pose_{};
+
+  std::vector<double> current_joint_values;
+
+  Eigen::Isometry3d goal_pose_;
+
+  robot_state::RobotStatePtr kinematic_state;
+  robot_model::RobotModelPtr kinematic_model ;
+  robot_state::JointModelGroup* joint_model_group ;
+
 };
 
 }  // namespace franka_example_controllers
