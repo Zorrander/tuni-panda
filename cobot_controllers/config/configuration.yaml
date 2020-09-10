@@ -2,3 +2,7 @@
 test_controller:
     type: cobot_controllers/CartesianPoseController
     arm_id: panda
+
+velocity_controller:
+    type: cobot_controllers/CartesianVelocityController
+    arm_id: panda

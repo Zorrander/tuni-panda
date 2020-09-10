@@ -69,21 +69,53 @@ bool CartesianPoseController::init(hardware_interface::RobotHW* robot_hardware,
 }
 
 void CartesianPoseController::starting(const ros::Time& /* time */) {
-  initial_pose_ = cartesian_pose_handle_->getRobotState().O_T_EE_d;
   elapsed_time_ = ros::Duration(0.0);
+
+  k_p = 2.0;  // damping ratio
+  k_d = 5.0;  // natural frequency
+
+  goal_pose_[0] = 0.46 ;
+  goal_pose_[1] = 0.01 ;
+  goal_pose_[2] = 0.20 ;
+
+  current_pose_ = cartesian_pose_handle_->getRobotState().O_T_EE_d;
+
+  error_[0] = goal_pose_[0] - current_pose_[12];
+  error_[1] = goal_pose_[1] - current_pose_[13];
+  error_[2] = goal_pose_[2] - current_pose_[14];
 }
 
 void CartesianPoseController::update(const ros::Time& /* time */,
                                             const ros::Duration& period) {
-  elapsed_time_ += period;
 
-  double radius = 0.3;
-  double angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec()));
-  double delta_x = radius * std::sin(angle);
-  double delta_z = radius * (std::cos(angle) - 1);
-  std::array<double, 16> new_pose = initial_pose_;
-  new_pose[12] -= delta_x;
-  new_pose[14] -= delta_z;
+  current_pose_ = cartesian_pose_handle_->getRobotState().O_T_EE_d;
+
+  double T_d = k_p/k_d ;
+
+  double error_decay_x = (goal_pose_[0] - current_pose_[12]) - error_[0] ;
+  double error_decay_y = (goal_pose_[1] - current_pose_[13]) - error_[1] ;
+  double error_decay_z = (goal_pose_[2] - current_pose_[14]) - error_[2] ;
+
+  error_[0] = goal_pose_[0] - current_pose_[12] ;
+  error_[1] = goal_pose_[1] - current_pose_[13];
+  error_[2] = goal_pose_[2] - current_pose_[14];
+
+  double x_d = k_p * (error_[0] + T_d*error_decay_x) ;
+  double y_d = k_p * (error_[1] + T_d*error_decay_y) ;
+  double z_d = k_p * (error_[2] + T_d*error_decay_z) ;
+
+  double multiplier = 0.0001 ;
+  x_d = x_d*multiplier ;
+  y_d = y_d*multiplier ;
+  z_d = z_d*multiplier ;
+
+  ROS_INFO_STREAM("Sending command: " << " x_d=" << x_d << " y_d=" << y_d << " z_d=" << z_d) ;
+
+  std::array<double, 16> new_pose = current_pose_;
+  new_pose[12] += x_d;
+  new_pose[13] += y_d;
+  new_pose[14] += z_d;
+
   cartesian_pose_handle_->setCommand(new_pose);
 }
 

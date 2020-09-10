@@ -7,4 +7,13 @@
       Demonstrate reach of the Franka
     </description>
   </class>
+
+  <class  name="cobot_controllers/CartesianVelocityController"
+          type="cobot_controllers::CartesianVelocityController"
+          base_class_type="controller_interface::ControllerBase">
+
+    <description>
+      Demonstrate reach
+    </description>
+  </class>
 </library>
