@@ -59,52 +59,75 @@ bool JointPositionController::init(hardware_interface::RobotHW* robot_hardware,
     }
   }
 
-  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
-  kinematic_model = robot_model_loader.getModel();
-  ROS_INFO("Model frame: %s", kinematic_model->getModelFrame().c_str());
-  robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
-  joint_model_group = kinematic_model->getJointModelGroup("panda_arm");
   return true;
 }
 
 void JointPositionController::starting(const ros::Time& /* time */) {
-  ROS_INFO("Starting");
-  geometry_msgs::Pose pose ;
-  pose.position.x = 0.46 ;
-  pose.position.y = 0.01 ;
-  pose.position.z = 0.20 ;
 
-  Eigen::Isometry3d goal_pose_ = Eigen::Isometry3d() ;
-  tf::poseMsgToEigen(pose, goal_pose_);
+      k_p = 2.0;  // damping ratio
+      k_d = 5.0;  // natural frequency
+      double T_d = k_p/k_d ;
 
-  current_joint_values.reserve(7);
+      robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+      kinematic_model = robot_model_loader.getModel();
+      ROS_INFO("Model frame: %s", kinematic_model->getModelFrame().c_str());
+      joint_model_group = kinematic_model->getJointModelGroup("panda_arm");
+
+      ROS_INFO("Starting");
+      geometry_msgs::Pose pose ;
+      pose.position.x = 0.46 ;
+      pose.position.y = 0.01 ;
+      pose.position.z = 0.20 ;
+
+      Eigen::Isometry3d goal_pose_ ;
+      tf::poseMsgToEigen(pose, goal_pose_);
+
+      current_joint_values.reserve(7);
+      goal_joint_values.reserve(7);
+
+      for (size_t i = 0; i < 7; ++i) {
+          current_joint_values[i] = position_joint_handles_[i].getPosition();
+          ROS_INFO_STREAM("current_joint_values[" << i << "] = " << current_joint_values[i]);
+      }
+
+      robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
+      ROS_INFO_STREAM("setJointGroupPositions");
+      kinematic_state->setJointGroupPositions(joint_model_group, current_joint_values);
+
+      ROS_INFO_STREAM("Look for IK solution");
+      double timeout = 0.1;
+      found_ik = kinematic_state->setFromIK(joint_model_group, goal_pose_, timeout);
+      if (found_ik)
+      {
+        ROS_INFO("Found IK solution");
+        kinematic_state->copyJointGroupPositions(joint_model_group, goal_joint_values);
+        for (size_t i = 0; i < 7; ++i)
+        {
+          error_[i] = goal_joint_values[i] - position_joint_handles_[i].getPosition() ;
+        }
+      }
 }
 
 void JointPositionController::update(const ros::Time& /*time*/,
                                             const ros::Duration& period) {
+      if (found_ik)
+      {
+        ROS_INFO("Updating");
+        for (size_t i = 0; i < 7; ++i)
+        {
+          current_joint_values[i] = position_joint_handles_[i].getPosition();
+          error_decay_[i] = (goal_joint_values[i] - current_joint_values[i]) - error_[i];
+          error_[i] = goal_joint_values[i] - current_joint_values[i] ;
+          double joint_i_command = k_p * (error_[i] + T_d*error_decay_[i]) ;
+          position_joint_handles_[i].setCommand(current_joint_values[i] + joint_i_command*0.0001);
+          ROS_INFO_STREAM("command[" << i << "] = " << current_joint_values[i] + joint_i_command);
+        }
 
-  for (size_t i = 0; i < 7; ++i) {
-      ROS_INFO_STREAM("current_joint_values[" << i << "] = " << position_joint_handles_[i].getPosition());
-      current_joint_values[i] = position_joint_handles_[i].getPosition();
-  }
-
-  ROS_INFO("Look for IK solution");
-  kinematic_state->setJointGroupPositions(joint_model_group, current_joint_values);
-
-  double timeout = 0.1;
-  bool found_ik = kinematic_state->setFromIK(joint_model_group, goal_pose_, timeout);
-
-  // Now, we can print out the IK solution (if found):
-  if (found_ik)
-  {
-    ROS_INFO("Did find IK solution");
-
-  }
-  else
-  {
-    ROS_INFO("Did not find IK solution");
-  }
-
+      }
+      else
+      {
+        ROS_INFO("Did not find IK solution");
+      }
 }
 
 }  // namespace cobot_controllers

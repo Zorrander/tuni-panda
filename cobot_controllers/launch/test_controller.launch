@@ -16,6 +16,6 @@
 
 
     <rosparam command="load" file="$(find cobot_controllers)/config/configuration.yaml" />
-    <node name="custom_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_position_controller"/>
+    <node name="custom_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="test_controller"/>
 
 </launch>

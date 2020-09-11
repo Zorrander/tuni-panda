@@ -71,8 +71,8 @@ bool CartesianPoseController::init(hardware_interface::RobotHW* robot_hardware,
 void CartesianPoseController::starting(const ros::Time& /* time */) {
   elapsed_time_ = ros::Duration(0.0);
 
-  k_p = 2.0;  // damping ratio
-  k_d = 5.0;  // natural frequency
+  k_p = 0.2;  // damping ratio
+  k_d = 0.5;  // natural frequency
 
   goal_pose_[0] = 0.46 ;
   goal_pose_[1] = 0.01 ;

@@ -35,10 +35,16 @@ class JointPositionController : public controller_interface::MultiInterfaceContr
   ros::Duration elapsed_time_;
   std::array<double, 7> initial_pose_{};
 
+  double k_p;
+  double k_d;
+  double T_d;
+
+  std::array<double, 7> error_{};
+  std::array<double, 7> error_decay_{};
+
   std::vector<double> current_joint_values;
-
-  Eigen::Isometry3d goal_pose_;
-
+  std::vector<double> goal_joint_values;
+  bool found_ik;
   robot_state::RobotStatePtr kinematic_state;
   robot_model::RobotModelPtr kinematic_model ;
   robot_state::JointModelGroup* joint_model_group ;
