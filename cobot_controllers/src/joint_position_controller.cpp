@@ -1,7 +1,7 @@
 // Copyright (c) 2017 Franka Emika GmbH
 // Use of this source code is governed by the Apache-2.0 license, see LICENSE
 #include <cobot_controllers/joint_position_controller.h>
-
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <tf/tf.h>
@@ -22,6 +22,8 @@ namespace cobot_controllers {
 
 bool JointPositionController::init(hardware_interface::RobotHW* robot_hardware,
                                           ros::NodeHandle& node_handle) {
+
+  n_ = ros::NodeHandle(node_handle);
   position_joint_interface_ = robot_hardware->get<hardware_interface::PositionJointInterface>();
   if (position_joint_interface_ == nullptr) {
     ROS_ERROR(
@@ -64,48 +66,48 @@ bool JointPositionController::init(hardware_interface::RobotHW* robot_hardware,
 
 void JointPositionController::starting(const ros::Time& /* time */) {
 
+      sub_cmd_ = n_.subscribe<geometry_msgs::Pose>("/new_target", 1, &JointPositionController::newTargetCallback, this);
+
       k_p = 2.0;  // damping ratio
       k_d = 5.0;  // natural frequency
       double T_d = k_p/k_d ;
+
+      current_joint_values.reserve(7);
 
       robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
       kinematic_model = robot_model_loader.getModel();
       ROS_INFO("Model frame: %s", kinematic_model->getModelFrame().c_str());
       joint_model_group = kinematic_model->getJointModelGroup("panda_arm");
-
+      found_ik = false;
       ROS_INFO("Starting");
-      geometry_msgs::Pose pose ;
-      pose.position.x = 0.46 ;
-      pose.position.y = 0.01 ;
-      pose.position.z = 0.20 ;
+}
 
-      Eigen::Isometry3d goal_pose_ ;
-      tf::poseMsgToEigen(pose, goal_pose_);
+void JointPositionController::newTargetCallback(const geometry_msgs::Pose::ConstPtr& pose_msg)
+{
+  // Eigen::Isometry3d goal_pose_ ;
+  // tf::poseMsgToEigen(pose, goal_pose_);
 
-      current_joint_values.reserve(7);
-      goal_joint_values.reserve(7);
+  goal_joint_values.reserve(7);
 
-      for (size_t i = 0; i < 7; ++i) {
-          current_joint_values[i] = position_joint_handles_[i].getPosition();
-          ROS_INFO_STREAM("current_joint_values[" << i << "] = " << current_joint_values[i]);
-      }
+  for (size_t i = 0; i < 7; ++i) {
+      current_joint_values[i] = position_joint_handles_[i].getPosition();
+      ROS_INFO_STREAM("current_joint_values[" << i << "] = " << current_joint_values[i]);
+  }
 
-      robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
-      ROS_INFO_STREAM("setJointGroupPositions");
-      kinematic_state->setJointGroupPositions(joint_model_group, current_joint_values);
+  robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
+  kinematic_state->setJointGroupPositions(joint_model_group, current_joint_values);
 
-      ROS_INFO_STREAM("Look for IK solution");
-      double timeout = 0.1;
-      found_ik = kinematic_state->setFromIK(joint_model_group, goal_pose_, timeout);
-      if (found_ik)
-      {
-        ROS_INFO("Found IK solution");
-        kinematic_state->copyJointGroupPositions(joint_model_group, goal_joint_values);
-        for (size_t i = 0; i < 7; ++i)
-        {
-          error_[i] = goal_joint_values[i] - position_joint_handles_[i].getPosition() ;
-        }
-      }
+  double timeout = 0.1;
+  found_ik = kinematic_state->setFromIK(joint_model_group, *pose_msg, timeout);
+  if (found_ik)
+  {
+    ROS_INFO("Found IK solution");
+    kinematic_state->copyJointGroupPositions(joint_model_group, goal_joint_values);
+    for (size_t i = 0; i < 7; ++i)
+    {
+      error_[i] = goal_joint_values[i] - position_joint_handles_[i].getPosition() ;
+    }
+  }
 }
 
 void JointPositionController::update(const ros::Time& /*time*/,
@@ -119,14 +121,20 @@ void JointPositionController::update(const ros::Time& /*time*/,
           error_decay_[i] = (goal_joint_values[i] - current_joint_values[i]) - error_[i];
           error_[i] = goal_joint_values[i] - current_joint_values[i] ;
           double joint_i_command = k_p * (error_[i] + T_d*error_decay_[i]) ;
-          position_joint_handles_[i].setCommand(current_joint_values[i] + joint_i_command*0.0001);
+          position_joint_handles_[i].setCommand(current_joint_values[i] + joint_i_command*0.0005);
           ROS_INFO_STREAM("command[" << i << "] = " << current_joint_values[i] + joint_i_command);
         }
 
       }
       else
       {
-        ROS_INFO("Did not find IK solution");
+
+        for (size_t i = 0; i < 7; ++i)
+        {
+          ROS_INFO("Did not find IK solution");
+          current_joint_values[i] = position_joint_handles_[i].getPosition();
+          position_joint_handles_[i].setCommand(current_joint_values[i]);
+        }
       }
 }
 

@@ -49,6 +49,10 @@ class JointPositionController : public controller_interface::MultiInterfaceContr
   robot_model::RobotModelPtr kinematic_model ;
   robot_state::JointModelGroup* joint_model_group ;
 
+  ros::NodeHandle n_;
+  ros::Subscriber sub_cmd_ ;
+  void newTargetCallback(const geometry_msgs::Pose::ConstPtr& pose_msg) ;
+
 };
 
 }  // namespace franka_example_controllers
