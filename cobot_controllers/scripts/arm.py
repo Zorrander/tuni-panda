@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
+from std_msgs.msg import Empty
 from std_srvs.srv import Trigger, TriggerResponse
 from cobot_controllers.arm import Arm
 from cobot_msgs.srv import *
+from geometry_msgs.msg import Pose
 from franka_control.msg import ErrorRecoveryActionGoal
 
 test_joint_positions_array = [-0.000190902556141577, -0.6355551061881216, 0.0005800443025828713,
@@ -46,12 +48,16 @@ def reset(request, pub):
     pub.publish(ErrorRecoveryActionGoal())
     return TriggerResponse(True, "Robot recovery")
 
+
 if __name__ == '__main__':
     rospy.init_node('panda_arm_control')
-    panda_arm = Arm()
+
+    pub_controller = rospy.Publisher('/new_target', Pose, queue_size=10)
+    panda_arm = Arm(pub_controller)
+
+    sub = rospy.Subscriber("/target_reached", Empty, panda_arm.switchToForceImpedanceControl)
 
     pub = rospy.Publisher('/franka_control/error_recovery/goal', ErrorRecoveryActionGoal, queue_size=10)
-
     s1 = rospy.Service('go_to_joint_space_goal', ReachJointPose, lambda msg: go_to_joint_space_goal(msg,panda_arm))
     s2 = rospy.Service("go_to_cartesian_goal", ReachCartesianPose, lambda msg: go_to_cartesian_goal(msg,panda_arm))
     s3 = rospy.Service('move_to', NamedTarget, lambda msg: move_to(msg,panda_arm) )

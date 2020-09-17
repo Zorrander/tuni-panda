@@ -18,9 +18,8 @@
   />
   -->
   <node pkg="tf" type="static_transform_publisher" name="br_tag_two_two"
-    args="-0.5079573186507986 -0.2176700276160913 0 0 0 0
-    tag_20 panda_link0 100"
+    args="-0.5737777343175969 -0.16001022125802014 0 0 0 0
+    tag_9 panda_link0 100"
   />
-
 
 </launch>

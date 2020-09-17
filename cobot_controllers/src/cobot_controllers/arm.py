@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 from tf.transformations import *
+import rospy
 import sys
 import moveit_commander
 import math
+from geometry_msgs.msg import Pose
+from controller_manager_msgs.srv import SwitchController, SwitchControllerRequest
 import yaml
 import os.path
 from os.path import expanduser
@@ -12,18 +15,41 @@ home = expanduser("~")
 RESOURCE_PATH  = os.path.join(home, "ros_ws", "robot_catkin_ws", "src", "tuni-panda", "cobot_controllers", "config")
 
 class Arm(object):
-    def __init__(self):
+    def __init__(self, pub_controller):
       moveit_commander.roscpp_initialize(sys.argv)
       group_name = "panda_arm"
       self.robot = moveit_commander.RobotCommander()
       self.scene = moveit_commander.PlanningSceneInterface()
       self.group = moveit_commander.MoveGroupCommander(group_name)
+      self.pub_controller = pub_controller
+
+      self.controller_switcher = rospy.ServiceProxy('/controller_manager/switch_controller', SwitchController)
+
+      self.switchToArmNavigationControl("")
+
       with open(os.path.join(RESOURCE_PATH, "pose-configuration.yaml"), 'r') as file:
           conf = yaml.load(file) or {}
       for key, value in conf.items():
           if not key.endswith("_ee"):
               self.group.remember_joint_values(key, value)
 
+    def switchToArmNavigationControl(self, msg):
+        rospy.loginfo('Switching to arm navigation control')
+        switch_msg = SwitchControllerRequest()
+        switch_msg.start_controllers = ["joint_position_controller"]
+        switch_msg.stop_controllers = ["cartesian_impedance_controller"]
+        switch =  self.controller_switcher(switch_msg)
+        print(switch.ok)
+        return switch.ok
+
+    def switchToForceImpedanceControl(self, msg):
+        rospy.loginfo('Switching to force/impedance control on arm')
+        switch_msg = SwitchControllerRequest()
+        switch_msg.start_controllers = ["cartesian_impedance_controller"]
+        switch_msg.stop_controllers = ["joint_position_controller"]
+        switch =  self.controller_switcher(switch_msg)
+        print(switch.ok)
+        return switch.ok
 
     def set_speed(self, speed_factor):
         ''' Modify max speed of the arm by a speed factor ranging from 0 to 1.'''
@@ -55,6 +81,11 @@ class Arm(object):
     def go_to_cartesian_goal(self, point):
         print("go_to_cartesian_goal")
         try:
+            point.z += 0.15
+            goal = Pose()
+            goal.position = point
+            self.pub_controller.publish(goal)
+            '''
             next_point = self.group.get_current_pose().pose
             if next_point.position.z > point.z: # We need to lower the arm
                 next_point.position.x = point.x
@@ -82,6 +113,7 @@ class Arm(object):
                 plan = self.group.go(wait=True)
                 self.group.stop()
                 self.group.clear_pose_targets()
+            '''
         except Exception as e:
             print(e)
 

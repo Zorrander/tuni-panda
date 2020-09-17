@@ -24,7 +24,6 @@ class TagPoseServer(object):
         self.listener = tf.TransformListener()
         rospy.Subscriber("/tag_detections", AprilTagDetectionArray, self.callback)
         self.target_pub = rospy.Publisher('target_pose', Point, queue_size=10)
-        self.controller_target_pub = rospy.Publisher('/new_target', Pose, queue_size=10)
         self.obstacle_pub = rospy.Publisher('obstacle_pose', Point, queue_size=10)
         self.s = rospy.Service('/calculate_tag_pose', TagPose, self.calculate_tag_pose)
 
@@ -51,10 +50,9 @@ class TagPoseServer(object):
                 transformed_pose = self.tranform(tag.pose.pose.pose)
                 self.obstacle_pub.publish(transformed_pose.pose.position)
             elif tag.id[0] in [4, 5]:
+                print("target")
                 transformed_pose = self.tranform(tag.pose.pose.pose)
                 self.target_pub.publish(transformed_pose.pose.position)
-                print("controller_target_pub")
-                self.controller_target_pub.publish(transformed_pose.pose)
 
         '''
         for tag in msg_array.detections:

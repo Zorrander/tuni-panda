@@ -18,6 +18,7 @@
   <depend>tf</depend>
   <depend>tf_conversions</depend>
   <depend>eigen_conversions</depend>
+  <depend>dynamic_reconfigure</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 

@@ -61,24 +61,29 @@ bool JointPositionController::init(hardware_interface::RobotHW* robot_hardware,
     }
   }
 
+
   return true;
 }
 
 void JointPositionController::starting(const ros::Time& /* time */) {
 
       sub_cmd_ = n_.subscribe<geometry_msgs::Pose>("/new_target", 1, &JointPositionController::newTargetCallback, this);
+      target_reached_pub = n_.advertise<std_msgs::Empty>("/target_reached", 1000);
+      controller_switch_client = n_.serviceClient<controller_manager_msgs::SwitchController>("/controller_manager/switch_controller");
 
       k_p = 2.0;  // damping ratio
       k_d = 5.0;  // natural frequency
       double T_d = k_p/k_d ;
 
       current_joint_values.reserve(7);
+      current_command_.reserve(3);
 
       robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
       kinematic_model = robot_model_loader.getModel();
       ROS_INFO("Model frame: %s", kinematic_model->getModelFrame().c_str());
       joint_model_group = kinematic_model->getJointModelGroup("panda_arm");
       found_ik = false;
+      target_reached_ = true;
       ROS_INFO("Starting");
 }
 
@@ -86,7 +91,7 @@ void JointPositionController::newTargetCallback(const geometry_msgs::Pose::Const
 {
   // Eigen::Isometry3d goal_pose_ ;
   // tf::poseMsgToEigen(pose, goal_pose_);
-
+  ROS_INFO("Received target");
   goal_joint_values.reserve(7);
 
   for (size_t i = 0; i < 7; ++i) {
@@ -108,30 +113,61 @@ void JointPositionController::newTargetCallback(const geometry_msgs::Pose::Const
       error_[i] = goal_joint_values[i] - position_joint_handles_[i].getPosition() ;
     }
   }
+  else {
+    ROS_INFO("Did not find IK solution");
+  }
 }
 
 void JointPositionController::update(const ros::Time& /*time*/,
                                             const ros::Duration& period) {
       if (found_ik)
       {
-        ROS_INFO("Updating");
+        target_reached_ = true;
         for (size_t i = 0; i < 7; ++i)
         {
+          // Compute error and error rate evolution
           current_joint_values[i] = position_joint_handles_[i].getPosition();
           error_decay_[i] = (goal_joint_values[i] - current_joint_values[i]) - error_[i];
           error_[i] = goal_joint_values[i] - current_joint_values[i] ;
-          double joint_i_command = k_p * (error_[i] + T_d*error_decay_[i]) ;
-          position_joint_handles_[i].setCommand(current_joint_values[i] + joint_i_command*0.0005);
-          ROS_INFO_STREAM("command[" << i << "] = " << current_joint_values[i] + joint_i_command);
+
+          //Detect if the target has been reached or not
+          if (error_[i] > 0.01){
+            target_reached_ = false;
+          }
+        }
+
+        // Send signal if the target has been reached
+        if (target_reached_){
+          //for (size_t i = 0; i < 7; ++i)
+          //{
+            // stop robot
+          //  position_joint_handles_[i].setCommand(0.0);
+          //}
+          // std_msgs::Empty msg ;
+          // target_reached_pub.publish(msg);
+
+          controller_manager_msgs::SwitchController srv;
+          std::vector<std::string> start_controllers_ = {"cartesian_impedance_controller"};
+          std::vector<std::string> stop_controllers_ = {"joint_position_controller"};
+          srv.request.start_controllers = start_controllers_;
+          srv.request.stop_controllers = stop_controllers_;
+
+          controller_switch_client.call(srv);
+
+        } else {
+          for (size_t i = 0; i < 7; ++i)
+          {
+            // Commands - PD control
+            double joint_i_command = k_p * (error_[i] + T_d*error_decay_[i]) ;
+            position_joint_handles_[i].setCommand(current_joint_values[i] + joint_i_command*0.0005);
+          }
         }
 
       }
       else
       {
-
         for (size_t i = 0; i < 7; ++i)
         {
-          ROS_INFO("Did not find IK solution");
           current_joint_values[i] = position_joint_handles_[i].getPosition();
           position_joint_handles_[i].setCommand(current_joint_values[i]);
         }

@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(catkin REQUIRED COMPONENTS
     controller_interface
     hardware_interface
+    dynamic_reconfigure
     pluginlib
     franka_hw
     roscpp
@@ -25,10 +26,15 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_python_setup()
 
+generate_dynamic_reconfigure_options(
+  cfg/compliance_param.cfg
+)
+
 catkin_package(
    LIBRARIES cobot_controllers
    CATKIN_DEPENDS
       controller_interface
+      dynamic_reconfigure
       hardware_interface
       pluginlib
       franka_hw
@@ -54,7 +60,7 @@ add_library(cobot_controllers
     src/cartesian_pose_controller.cpp
     src/cartesian_velocity_controller.cpp
     src/joint_position_controller.cpp
-
+    src/cartesian_impedance_controller.cpp
 )
 
 target_link_libraries(cobot_controllers ${catkin_LIBRARIES} ${Boost_LIBRARIES})

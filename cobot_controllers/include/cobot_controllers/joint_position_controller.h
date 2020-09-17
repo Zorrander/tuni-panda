@@ -13,6 +13,10 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <geometry_msgs/Pose.h>
+#include <std_msgs/Empty.h>
+
+
+#include "controller_manager_msgs/SwitchController.h"
 
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
@@ -33,7 +37,6 @@ class JointPositionController : public controller_interface::MultiInterfaceContr
   hardware_interface::PositionJointInterface* position_joint_interface_;
   std::vector<hardware_interface::JointHandle> position_joint_handles_;
   ros::Duration elapsed_time_;
-  std::array<double, 7> initial_pose_{};
 
   double k_p;
   double k_d;
@@ -42,15 +45,22 @@ class JointPositionController : public controller_interface::MultiInterfaceContr
   std::array<double, 7> error_{};
   std::array<double, 7> error_decay_{};
 
+  std::vector<double> current_command_{};
   std::vector<double> current_joint_values;
   std::vector<double> goal_joint_values;
+
   bool found_ik;
+  std::array<bool, 7> is_target_reached_{};
+  bool target_reached_;
+
   robot_state::RobotStatePtr kinematic_state;
   robot_model::RobotModelPtr kinematic_model ;
   robot_state::JointModelGroup* joint_model_group ;
 
   ros::NodeHandle n_;
   ros::Subscriber sub_cmd_ ;
+  ros::Publisher target_reached_pub ;
+  ros::ServiceClient controller_switch_client ;
   void newTargetCallback(const geometry_msgs::Pose::ConstPtr& pose_msg) ;
 
 };
