@@ -27,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_python_setup()
 
 generate_dynamic_reconfigure_options(
+  cfg/desired_mass_param.cfg
   cfg/compliance_param.cfg
 )
 
@@ -52,17 +53,18 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(robot_model_and_robot_state_tutorial
-    src/robot_model_and_robot_state_tutorial.cpp
-)
+# add_executable(robot_model_and_robot_state_tutorial
+#    src/robot_model_and_robot_state_tutorial.cpp
+# )
 
 add_library(cobot_controllers
     src/cartesian_pose_controller.cpp
     src/cartesian_velocity_controller.cpp
     src/joint_position_controller.cpp
     src/cartesian_impedance_controller.cpp
+    src/force_controller.cpp
 )
 
 target_link_libraries(cobot_controllers ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-target_link_libraries(robot_model_and_robot_state_tutorial ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+# target_link_libraries(robot_model_and_robot_state_tutorial ${catkin_LIBRARIES} ${Boost_LIBRARIES})

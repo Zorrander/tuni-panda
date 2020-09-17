@@ -15,9 +15,6 @@
 #include <geometry_msgs/Pose.h>
 #include <std_msgs/Empty.h>
 
-
-#include "controller_manager_msgs/SwitchController.h"
-
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/robot_hw.h>
@@ -60,7 +57,7 @@ class JointPositionController : public controller_interface::MultiInterfaceContr
   ros::NodeHandle n_;
   ros::Subscriber sub_cmd_ ;
   ros::Publisher target_reached_pub ;
-  ros::ServiceClient controller_switch_client ;
+
   void newTargetCallback(const geometry_msgs::Pose::ConstPtr& pose_msg) ;
 
 };

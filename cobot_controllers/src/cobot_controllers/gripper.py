@@ -2,6 +2,7 @@ import rospy
 import actionlib
 import franka_gripper.msg
 from control_msgs.msg import GripperCommandActionGoal, GripperCommandGoal, GripperCommand
+from controller_manager_msgs.srv import SwitchController, SwitchControllerRequest
 
 class Gripper():
 
@@ -10,6 +11,8 @@ class Gripper():
         self.stop_client   = actionlib.SimpleActionClient('/franka_gripper/homing', franka_gripper.msg.StopAction)
         self.grasp_client  = actionlib.SimpleActionClient('/franka_gripper/grasp', franka_gripper.msg.GraspAction)
         self.homing_client = actionlib.SimpleActionClient('/franka_gripper/homing', franka_gripper.msg.HomingAction)
+
+        self.controller_switcher = rospy.ServiceProxy('/controller_manager/switch_controller', SwitchController)
 
         self.generic_grasp_client =  rospy.Publisher('/franka_gripper/gripper_action/goal', GripperCommandActionGoal, queue_size=10)
 
@@ -21,6 +24,15 @@ class Gripper():
         rospy.loginfo("Grasping client connected")
         self.homing_client.wait_for_server()
         rospy.loginfo("Homing gripper client connected")
+
+    def switchToArmNavigationControl(self):
+        rospy.loginfo('Switching to arm navigation control')
+        switch_msg = SwitchControllerRequest()
+        switch_msg.start_controllers = ["joint_position_controller"]
+        switch_msg.stop_controllers = ["cartesian_impedance_controller"]
+        switch =  self.controller_switcher(switch_msg)
+        print(switch.ok)
+        return switch.ok
 
     def homing(self):
         goal = franka_gripper.msg.HomingActionGoal(goal={})
@@ -69,3 +81,7 @@ class Gripper():
         grasp_goal.command.max_effort = float(force)
         grasp_msg = GripperCommandActionGoal(goal=grasp_goal)
         self.generic_grasp_client.publish(grasp_msg)
+
+    def grasp_triggered(self, msg):
+        self.grasp(50.0, 0.035)
+        self.switchToArmNavigationControl()

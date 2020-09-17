@@ -22,7 +22,6 @@ class Arm(object):
       self.scene = moveit_commander.PlanningSceneInterface()
       self.group = moveit_commander.MoveGroupCommander(group_name)
       self.pub_controller = pub_controller
-
       self.controller_switcher = rospy.ServiceProxy('/controller_manager/switch_controller', SwitchController)
 
       self.switchToArmNavigationControl("")

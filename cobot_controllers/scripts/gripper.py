@@ -4,7 +4,7 @@ import rospy
 from std_srvs.srv import Trigger
 from cobot_controllers.gripper import Gripper
 from cobot_msgs.srv import *
-
+from std_msgs.msg import Empty
 
 def homing(request, robot):
     robot.homing()
@@ -32,6 +32,8 @@ if __name__ == '__main__':
     rospy.init_node('panda_gripper_control')
 
     panda_gripper = Gripper()
+
+    sub = rospy.Subscriber("/human_ready", Empty, panda_gripper.grasp_triggered)
 
     homing_service = rospy.Service("home_gripper", Trigger, lambda msg: homing(msg,panda_gripper))
     stop_gripper_service = rospy.Service("stop_gripper", Trigger, lambda msg: stop(msg,panda_gripper))

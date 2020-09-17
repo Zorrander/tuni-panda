@@ -16,6 +16,8 @@ namespace cobot_controllers {
 
 bool CartesianImpedanceController::init(hardware_interface::RobotHW* robot_hw,
                                                ros::NodeHandle& node_handle) {
+  n_ = ros::NodeHandle(node_handle);
+
   std::vector<double> cartesian_stiffness_vector;
   std::vector<double> cartesian_damping_vector;
 
@@ -107,6 +109,9 @@ bool CartesianImpedanceController::init(hardware_interface::RobotHW* robot_hw,
 
 void CartesianImpedanceController::starting(const ros::Time& /*time*/) {
   ROS_INFO("CartesianImpedanceController starting");
+
+  human_ready_signal = n_.advertise<std_msgs::Empty>("/human_ready", 1);
+  sent = false ;
   // compute initial velocity with jacobian and set x_attractor and q_d_nullspace
   // to initial configuration
   franka::RobotState initial_state = state_handle_->getRobotState();
@@ -129,7 +134,7 @@ void CartesianImpedanceController::starting(const ros::Time& /*time*/) {
 
 void CartesianImpedanceController::update(const ros::Time& /*time*/,
                                                  const ros::Duration& /*period*/) {
-  ROS_INFO("CartesianImpedanceController update");
+
   // get state variables
   franka::RobotState robot_state = state_handle_->getRobotState();
   std::array<double, 7> coriolis_array = model_handle_->getCoriolis();
@@ -151,6 +156,13 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/,
   // position error
   Eigen::Matrix<double, 6, 1> error;
   error.head(3) << position - position_d_;
+  if ((error(0, 0) > 0.001 ||error(0, 1) > 0.001 ||error(0, 2) > 0.001) && !sent ){
+    std_msgs::Empty msg ;
+    human_ready_signal.publish(msg);
+    sent = true;
+    ROS_INFO("CartesianImpedanceController leaving");
+
+  }
 
   // orientation error
   if (orientation_d_.coeffs().dot(orientation.coeffs()) < 0.0) {

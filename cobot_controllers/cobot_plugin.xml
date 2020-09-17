@@ -4,7 +4,7 @@
           base_class_type="controller_interface::ControllerBase">
 
     <description>
-      Demonstrate reach of the Franka
+      A controller that executes motions based on cartesian poses
     </description>
   </class>
 
@@ -13,7 +13,7 @@
           base_class_type="controller_interface::ControllerBase">
 
     <description>
-      Demonstrate reach
+      A controller that executes motions based on cartesian velocities
     </description>
   </class>
 
@@ -23,7 +23,7 @@
           base_class_type="controller_interface::ControllerBase">
 
     <description>
-      Demonstrate reach
+      A controller that executes motions based on joint positions
     </description>
   </class>
 
@@ -34,6 +34,16 @@
     <description>
       A controller that renders a spring damper system in cartesian space.
        Compliance parameters and the equilibrium pose can be modified online with dynamic reconfigure and an interactive marker respectively.
+    </description>
+  </class>
+
+
+  <class name="cobot_controllers/ForceExampleController"
+        type="cobot_controllers::ForceExampleController"
+        base_class_type="controller_interface::ControllerBase" >
+    <description>
+      A PI controller that applies a force corresponding to a user-provided desired mass in the z axis.
+      The desired mass value can be modified online with dynamic reconfigure.
     </description>
   </class>
 </library>

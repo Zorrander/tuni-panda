@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <std_msgs/Empty.h>
 
 #include <controller_interface/multi_interface_controller.h>
 #include <dynamic_reconfigure/server.h>
@@ -36,6 +37,10 @@ class CartesianImpedanceController : public controller_interface::MultiInterface
       const Eigen::Matrix<double, 7, 1>& tau_d_calculated,
       const Eigen::Matrix<double, 7, 1>& tau_J_d);  // NOLINT (readability-identifier-naming)
 
+  ros::NodeHandle n_;
+  ros::Publisher human_ready_signal ;
+  bool sent ;
+  
   std::unique_ptr<franka_hw::FrankaStateHandle> state_handle_;
   std::unique_ptr<franka_hw::FrankaModelHandle> model_handle_;
   std::vector<hardware_interface::JointHandle> joint_handles_;

@@ -50,18 +50,6 @@ bool JointPositionController::init(hardware_interface::RobotHW* robot_hardware,
     }
   }
 
-  std::array<double, 7> q_start{{0, -M_PI_4, 0, -3 * M_PI_4, 0, M_PI_2, M_PI_4}};
-  for (size_t i = 0; i < q_start.size(); i++) {
-    if (std::abs(position_joint_handles_[i].getPosition() - q_start[i]) > 0.1) {
-      ROS_ERROR_STREAM(
-          "JointPositionController: Robot is not in the expected starting position for "
-          "running this example. Run `roslaunch franka_example_controllers move_to_start.launch "
-          "robot_ip:=<robot-ip> load_gripper:=<has-attached-gripper>` first.");
-      return false;
-    }
-  }
-
-
   return true;
 }
 
@@ -69,7 +57,7 @@ void JointPositionController::starting(const ros::Time& /* time */) {
 
       sub_cmd_ = n_.subscribe<geometry_msgs::Pose>("/new_target", 1, &JointPositionController::newTargetCallback, this);
       target_reached_pub = n_.advertise<std_msgs::Empty>("/target_reached", 1000);
-      controller_switch_client = n_.serviceClient<controller_manager_msgs::SwitchController>("/controller_manager/switch_controller");
+
 
       k_p = 2.0;  // damping ratio
       k_d = 5.0;  // natural frequency
@@ -84,7 +72,7 @@ void JointPositionController::starting(const ros::Time& /* time */) {
       joint_model_group = kinematic_model->getJointModelGroup("panda_arm");
       found_ik = false;
       target_reached_ = true;
-      ROS_INFO("Starting");
+      ROS_INFO("JointPositionController::starting");
 }
 
 void JointPositionController::newTargetCallback(const geometry_msgs::Pose::ConstPtr& pose_msg)
@@ -138,21 +126,15 @@ void JointPositionController::update(const ros::Time& /*time*/,
 
         // Send signal if the target has been reached
         if (target_reached_){
-          //for (size_t i = 0; i < 7; ++i)
-          //{
-            // stop robot
-          //  position_joint_handles_[i].setCommand(0.0);
-          //}
-          // std_msgs::Empty msg ;
-          // target_reached_pub.publish(msg);
+          ROS_INFO("Target reached");
+          for (size_t i = 0; i < 7; ++i)
+          {
+            current_joint_values[i] = position_joint_handles_[i].getPosition();
+            position_joint_handles_[i].setCommand(current_joint_values[i]);
+          }
+          std_msgs::Empty msg ;
+          target_reached_pub.publish(msg);
 
-          controller_manager_msgs::SwitchController srv;
-          std::vector<std::string> start_controllers_ = {"cartesian_impedance_controller"};
-          std::vector<std::string> stop_controllers_ = {"joint_position_controller"};
-          srv.request.start_controllers = start_controllers_;
-          srv.request.stop_controllers = stop_controllers_;
-
-          controller_switch_client.call(srv);
 
         } else {
           for (size_t i = 0; i < 7; ++i)
