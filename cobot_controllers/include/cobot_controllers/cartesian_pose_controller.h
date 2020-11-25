@@ -10,7 +10,12 @@
 #include <ros/node_handle.h>
 #include <ros/time.h>
 
+#include <geometry_msgs/Pose.h>
+#include <std_msgs/Empty.h>
+
 #include <franka_hw/franka_cartesian_command_interface.h>
+
+#define _USE_MATH_DEFINES
 
 namespace cobot_controllers {
 
@@ -22,16 +27,20 @@ class CartesianPoseController
   void starting(const ros::Time&) override;
   void update(const ros::Time&, const ros::Duration& period) override;
   void stopping (const ros::Time& time);
+  void newTargetCallback(const geometry_msgs::Pose::ConstPtr& pose_msg) ;
 
  private:
+  ros::Subscriber sub_cmd_ ;
+  ros::Publisher target_reached_pub ;
+
   franka_hw::FrankaPoseCartesianInterface* cartesian_pose_interface_;
+
   std::unique_ptr<franka_hw::FrankaCartesianPoseHandle> cartesian_pose_handle_;
+
   ros::Duration elapsed_time_;
-  double k_p;
-  double k_d;
+
   std::array<double, 16> initial_pose_{};
   std::array<double, 16> current_pose_{};
-  std::array<double, 3> error_{};
   std::array<double, 3> goal_pose_{};
 };
 

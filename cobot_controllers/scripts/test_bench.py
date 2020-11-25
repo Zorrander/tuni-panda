@@ -71,11 +71,12 @@ class TestBench(object):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
         if self.carry_on_routine:
             grasp_goal = GraspGoal()
-            grasp_goal.width = float(width)
-            grasp_goal.epsilon.inner = 0.005
-            grasp_goal.epsilon.outer = 0.005
+            #grasp_goal.width = float(width)
+            grasp_goal.width = 0.001
+            grasp_goal.epsilon.inner = 0.001
+            grasp_goal.epsilon.outer = 0.001
             grasp_goal.speed = 20.0
-            grasp_goal.force = float(force)
+            grasp_goal.force = 75.0
             grasp_msg = GraspActionGoal(goal=grasp_goal)
             self.gripper_grasp_client.publish(grasp_msg)
         else:
@@ -84,8 +85,8 @@ class TestBench(object):
     def grasp2(self, width, force):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
         grasp_goal = GripperCommandGoal()
-        grasp_goal.command.position = float(width)
-        grasp_goal.command.max_effort = float(force)
+        grasp_goal.command.position = width
+        grasp_goal.command.max_effort = 100.0
         grasp_msg = GripperCommandActionGoal(goal=grasp_goal)
         self.generic_grasp_client.publish(grasp_msg)
 
@@ -179,7 +180,7 @@ class TestBench(object):
         print()
         print("*****            TEST BENCH             *****")
         print()
-        width = msg.width/100  # cm
+        width = msg.width  # cm
         force = msg.force  # N
         reps = msg.reps
         sets = msg.sets
@@ -193,17 +194,19 @@ class TestBench(object):
         print("Desired v_interval: {}m".format(v_interval))
         print()
         print("=============================================")
-        self.group.remember_joint_values("first_pose")
         first_pose = self.group.get_current_pose().pose
         try:
             for set in range(0, sets):
                 print("Horizontal_move")
                 for rep in range(0, reps):
+                    self.group.remember_joint_values("first_pose")
                     self.grasp2(width, force)
                     time.sleep(1)
-                    self.vertical_move(13)
+                    self.place("ready")
+                    # self.vertical_move(20)
                     time.sleep(1)
-                    self.vertical_move(-13)
+                    self.place("first_pose")
+                    #self.vertical_move(-20)
                     self.release()
                     time.sleep(1)
                     if (rep<reps-1):

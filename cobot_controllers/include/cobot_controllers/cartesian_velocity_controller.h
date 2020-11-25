@@ -24,11 +24,10 @@ class CartesianVelocityController : public controller_interface::MultiInterfaceC
  private:
   franka_hw::FrankaVelocityCartesianInterface* velocity_cartesian_interface_;
   std::unique_ptr<franka_hw::FrankaCartesianVelocityHandle> velocity_cartesian_handle_;
-  double k_p;  
-  double k_d;
+
   ros::Duration elapsed_time_;
   std::array<double, 16> current_pose_{};
-  std::array<double, 3> error_{};
+
   std::array<double, 3> goal_pose_{};
 };
 

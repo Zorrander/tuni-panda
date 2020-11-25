@@ -25,6 +25,7 @@ bool JointPositionController::init(hardware_interface::RobotHW* robot_hardware,
 
   n_ = ros::NodeHandle(node_handle);
   position_joint_interface_ = robot_hardware->get<hardware_interface::PositionJointInterface>();
+  // state_interface = robot_hardware->get<franka_hw::FrankaStateInterface>();
   if (position_joint_interface_ == nullptr) {
     ROS_ERROR(
         "JointPositionController: Error getting position joint interface from hardware!");
@@ -59,8 +60,8 @@ void JointPositionController::starting(const ros::Time& /* time */) {
       target_reached_pub = n_.advertise<std_msgs::Empty>("/target_reached", 1000);
 
 
-      k_p = 2.0;  // damping ratio
-      k_d = 5.0;  // natural frequency
+      k_p = 100.0;  // damping ratio
+      k_d = 20.0;  // natural frequency
       double T_d = k_p/k_d ;
 
       current_joint_values.reserve(7);
@@ -110,6 +111,16 @@ void JointPositionController::update(const ros::Time& /*time*/,
                                             const ros::Duration& period) {
       if (found_ik)
       {
+        //state_interface_handle_ = state_interface->getHandle("panda_arm_robot");
+        //robot_state = state_interface_handle_.getRobotState();
+
+        // get state variables
+        //coriolis_array = model.coriolis(robot_state);
+        //jacobian_array = model.zeroJacobian(franka::Frame::kEndEffector, robot_state);
+        // convert to Eigen
+        //coriolis(coriolis_array.data());
+        //jacobian(jacobian_array.data());
+
         target_reached_ = true;
         for (size_t i = 0; i < 7; ++i)
         {
@@ -123,6 +134,7 @@ void JointPositionController::update(const ros::Time& /*time*/,
             target_reached_ = false;
           }
         }
+
 
         // Send signal if the target has been reached
         if (target_reached_){

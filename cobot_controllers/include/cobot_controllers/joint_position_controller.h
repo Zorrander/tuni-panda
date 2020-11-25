@@ -15,11 +15,17 @@
 #include <geometry_msgs/Pose.h>
 #include <std_msgs/Empty.h>
 
+#include <franka/model.h>
+#include <franka/robot_state.h>
+#include <franka_hw/franka_state_interface.h>
+
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/robot_hw.h>
 #include <ros/node_handle.h>
 #include <ros/time.h>
+
+#include <Eigen/Dense>
 
 namespace cobot_controllers {
 
@@ -31,9 +37,23 @@ class JointPositionController : public controller_interface::MultiInterfaceContr
   void update(const ros::Time&, const ros::Duration& period) override;
 
  private:
+
+  ros::Duration elapsed_time_;
+  
   hardware_interface::PositionJointInterface* position_joint_interface_;
   std::vector<hardware_interface::JointHandle> position_joint_handles_;
-  ros::Duration elapsed_time_;
+
+  franka_hw::FrankaStateInterface* state_interface;
+  franka_hw::FrankaStateHandle* state_handle_;
+  franka::RobotState* robot_state;
+  franka::Model model;
+
+  // get state variables
+  std::array<double, 7> coriolis_array;
+  std::array<double, 42> jacobian_array;
+
+  Eigen::Map<const Eigen::Matrix<double, 7, 1>> coriolis;
+  Eigen::Map<const Eigen::Matrix<double, 6, 7>> jacobian;
 
   double k_p;
   double k_d;

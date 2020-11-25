@@ -22,9 +22,9 @@ def move(request, robot):
 
 def grasp(request, robot):
     print("""grasp""")
-    force = request.force if request.force > 0 else 50.0
+    force = request.force if request.force > 0 else 70.0
     #width = request.width/100 if request.width > 0 else 0.004
-    width = 0.035
+    width = 0.030
     robot.grasp(force, width)
     return GraspResponse(True)
 

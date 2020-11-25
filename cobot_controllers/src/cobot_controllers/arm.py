@@ -7,6 +7,7 @@ import math
 from geometry_msgs.msg import Pose
 from controller_manager_msgs.srv import SwitchController, SwitchControllerRequest
 import yaml
+import time
 import os.path
 from os.path import expanduser
 
@@ -35,7 +36,7 @@ class Arm(object):
     def switchToArmNavigationControl(self, msg):
         rospy.loginfo('Switching to arm navigation control')
         switch_msg = SwitchControllerRequest()
-        switch_msg.start_controllers = ["joint_position_controller"]
+        switch_msg.start_controllers = ["cartesian_pose_controller"]
         switch_msg.stop_controllers = ["cartesian_impedance_controller"]
         switch =  self.controller_switcher(switch_msg)
         print(switch.ok)
@@ -45,7 +46,7 @@ class Arm(object):
         rospy.loginfo('Switching to force/impedance control on arm')
         switch_msg = SwitchControllerRequest()
         switch_msg.start_controllers = ["cartesian_impedance_controller"]
-        switch_msg.stop_controllers = ["joint_position_controller"]
+        switch_msg.stop_controllers = ["cartesian_pose_controller"]
         switch =  self.controller_switcher(switch_msg)
         print(switch.ok)
         return switch.ok
@@ -80,39 +81,58 @@ class Arm(object):
     def go_to_cartesian_goal(self, point):
         print("go_to_cartesian_goal")
         try:
-            point.z += 0.15
-            goal = Pose()
-            goal.position = point
-            self.pub_controller.publish(goal)
-            '''
+
+            print("z --- {}".format(point.z))
             next_point = self.group.get_current_pose().pose
-            if next_point.position.z > point.z: # We need to lower the arm
-                next_point.position.x = point.x
-                next_point.position.y = point.y
-                self.group.set_pose_target(next_point)
-                plan = self.group.go(wait=True)
-                self.group.stop()
-                self.group.clear_pose_targets()
+            print("current z --- {}".format(next_point.position.z))
+
+            if next_point.position.z-0.10 > point.z: # We need to lower the arm
+                goal = Pose()
+                #next_point.position.x = point.x
+                #next_point.position.y = point.y
+                goal.position.x = point.x
+                goal.position.y = point.y
+                goal.position.z = next_point.position.z
+                self.pub_controller.publish(goal)
+
+                # self.group.set_pose_target(next_point)
+                # plan = self.group.go(wait=True)
+                # self.group.stop()
+                #self.group.clear_pose_targets()
                 # ---
-                next_point.position.z = point.z
-                self.group.set_pose_target(next_point)
-                plan = self.group.go(wait=True)
-                self.group.stop()
-                self.group.clear_pose_targets()
+                time.sleep(2)
+                print("z --- {}".format(point.z))
+                goal.position.z = point.z
+                self.pub_controller.publish(goal)
+
+                # self.group.set_pose_target(next_point)
+                # plan = self.group.go(wait=True)
+                # self.group.stop()
+                # self.group.clear_pose_targets()
             else:  # We need to move the arm up
-                next_point.position.z = point.z
-                self.group.set_pose_target(next_point)
-                plan = self.group.go(wait=True)
-                self.group.stop()
-                self.group.clear_pose_targets()
+                goal = Pose()
+                # next_point.position.z = point.z
+                goal.position.x = next_point.position.x
+                goal.position.y = next_point.position.y
+                goal.position.z = point.z
+                self.pub_controller.publish(goal)
+
+                # self.group.set_pose_target(next_point)
+                # plan = self.group.go(wait=True)
+                # self.group.stop()
+                # self.group.clear_pose_targets()
                 # ---
-                next_point.position.x = point.x
-                next_point.position.y = point.y
-                self.group.set_pose_target(next_point)
-                plan = self.group.go(wait=True)
-                self.group.stop()
-                self.group.clear_pose_targets()
-            '''
+                time.sleep(2)
+                goal.position.x = point.x
+                goal.position.y = point.y
+                self.pub_controller.publish(goal)
+                # next_point.position.x = point.x
+                # next_point.position.y = point.y
+                # self.group.set_pose_target(next_point)
+                # plan = self.group.go(wait=True)
+                # self.group.stop()
+                # self.group.clear_pose_targets()
+
         except Exception as e:
             print(e)
 
