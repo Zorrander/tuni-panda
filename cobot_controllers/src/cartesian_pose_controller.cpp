@@ -1,5 +1,5 @@
 #include <cobot_controllers/cartesian_pose_controller.h>
-
+#include <unistd.h>
 #include <cmath>
 #include <memory>
 #include <stdexcept>
@@ -80,22 +80,34 @@ void CartesianPoseController::update(const ros::Time& /* time */,
                                             const ros::Duration& period) {
 
   elapsed_time_ += period;
-  double angle, delta_x, delta_y, delta_z, radius;
-
+  double angle, delta_x, delta_y, delta_z, radius, err_x, err_y, err_z;
 
   current_pose_ = cartesian_pose_handle_->getRobotState().O_T_EE_d;
 
-  angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec()/ 5.0));
-
-  delta_x = (goal_pose_[0]-current_pose_[12]) * std::sin(angle);
-  delta_y = (goal_pose_[1]-current_pose_[13]) * std::sin(angle);
-  delta_z = (goal_pose_[2]-current_pose_[14]) * std::sin(angle);
-
   std::array<double, 16> new_pose = current_pose_;
 
-  new_pose[12] += delta_x;
-  new_pose[13] += delta_y;
-  new_pose[14] += delta_z;
+  err_x = goal_pose_[0]-current_pose_[12];
+  err_y = goal_pose_[1]-current_pose_[13];
+  err_z = goal_pose_[2]-current_pose_[14];
+
+  if (err_x != 0.0) {
+    //ROS_INFO_STREAM("err_x = " << err_x);
+    //ROS_INFO_STREAM("err_y = " << err_y);
+    //ROS_INFO_STREAM("err_z = " << err_z);
+
+    //ROS_INFO_STREAM("DISTANCE = " << 20.0*sqrt(pow(err_x, 2.0)+pow(err_y, 2.0)+pow(err_z, 2.0)));
+
+    // angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec()/ (3.0 + 20.0*sqrt(pow(err_x, 2.0)+pow(err_y, 2.0)+pow(err_z, 2.0)))));
+    angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec()/ 5.0 ));
+
+    delta_x = err_x * std::sin(angle);
+    delta_y = err_y * std::sin(angle);
+    delta_z = err_z * std::sin(angle);
+
+    new_pose[12] += delta_x;
+    new_pose[13] += delta_y;
+    new_pose[14] += delta_z;
+  }
 
   cartesian_pose_handle_->setCommand(new_pose);
 }

@@ -122,7 +122,7 @@ class Arm(object):
                 # self.group.stop()
                 # self.group.clear_pose_targets()
                 # ---
-                time.sleep(2)
+                time.sleep(2.5)
                 goal.position.x = point.x
                 goal.position.y = point.y
                 self.pub_controller.publish(goal)
