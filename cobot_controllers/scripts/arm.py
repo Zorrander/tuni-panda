@@ -24,6 +24,7 @@ def go_to_joint_space_goal(request, robot):
 def go_to_cartesian_goal(request, robot, pub):
     print("RECEIVED REQUEST")
     print(request)
+    robot.switchToArmNavigationControl("")
     reset(request, pub)
     robot.go_to_cartesian_goal(request.point)
     return ReachCartesianPoseResponse(True)
