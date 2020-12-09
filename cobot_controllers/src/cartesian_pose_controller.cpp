@@ -25,7 +25,7 @@ bool CartesianPoseController::init(hardware_interface::RobotHW* robot_hardware,
 
   std::string arm_id;
   if (!node_handle.getParam("arm_id", arm_id)) {
-    ROS_ERROR("CartesianPoseController: Could not get parameter arm_id");
+    ROS_ERROR("CartesianPoseController: C#include <Matrix3x3.h>ould not get parameter arm_id");
     return false;
   }
 
@@ -55,12 +55,26 @@ void CartesianPoseController::newTargetCallback(const geometry_msgs::Pose::Const
   ROS_INFO("Received target");
 
   ROS_INFO_STREAM("pose_msg->position.x = " << pose_msg->position.x);
-  ROS_INFO_STREAM("pose_msg->position.x = " << pose_msg->position.y);
-  ROS_INFO_STREAM("pose_msg->position.x = " << pose_msg->position.z);
+  ROS_INFO_STREAM("pose_msg->position.y = " << pose_msg->position.y);
+  ROS_INFO_STREAM("pose_msg->position.z = " << pose_msg->position.z);
+
+  ROS_INFO_STREAM("pose_msg->orientation.x = " << pose_msg->orientation.x);
+  ROS_INFO_STREAM("pose_msg->orientation.y = " << pose_msg->orientation.y);
+  ROS_INFO_STREAM("pose_msg->orientation.z = " << pose_msg->orientation.z);
+  ROS_INFO_STREAM("pose_msg->orientation.w = " << pose_msg->orientation.w);
 
   goal_pose_[0] = pose_msg->position.x ;
   goal_pose_[1] = pose_msg->position.y ;
   goal_pose_[2] = pose_msg->position.z ;
+
+  goal_pose_[3] = pose_msg->orientation.x ;
+  goal_pose_[4] = pose_msg->orientation.y ;
+  goal_pose_[5] = pose_msg->orientation.z ;
+  goal_pose_[6] = pose_msg->orientation.w ;
+
+  Eigen::Quaterniond q = Eigen::Quaterniond(goal_pose_[6], goal_pose_[3], goal_pose_[4], goal_pose_[5]);
+  rot_mat_d = q.normalized().toRotationMatrix();
+  ROS_INFO_STREAM("R= " << rot_mat_d);
 
   elapsed_time_ = ros::Duration(0.0);
 }
@@ -74,6 +88,15 @@ void CartesianPoseController::starting(const ros::Time& /* time */) {
   goal_pose_[0] = initial_pose_[12] ;
   goal_pose_[1] = initial_pose_[13] ;
   goal_pose_[2] = initial_pose_[14] ;
+
+  goal_pose_[3] = 0.0 ;
+  goal_pose_[4] = 0.0 ;
+  goal_pose_[5] = 0.0 ;
+  goal_pose_[6] = 1.0 ;
+
+  Eigen::Quaterniond q = Eigen::Quaterniond(goal_pose_[6], goal_pose_[3], goal_pose_[4], goal_pose_[5]);
+  rot_mat_d = q.normalized().toRotationMatrix();
+  ROS_INFO_STREAM("R= " << rot_mat_d);
 }
 
 void CartesianPoseController::update(const ros::Time& /* time */,
@@ -86,11 +109,28 @@ void CartesianPoseController::update(const ros::Time& /* time */,
 
   std::array<double, 16> new_pose = current_pose_;
 
-  err_x = goal_pose_[0]-current_pose_[12];
-  err_y = goal_pose_[1]-current_pose_[13];
-  err_z = goal_pose_[2]-current_pose_[14];
+  //for (size_t i = 0; i < 16; ++i) {
+  //  ROS_INFO_STREAM("current_pose_[" << i << " = " << current_pose_[i]);
+  //}
 
-  if (err_x != 0.0) {
+  pose_err_[0] = rot_mat_d(0)-current_pose_[0];
+  pose_err_[1] = rot_mat_d(1)-current_pose_[1];
+  pose_err_[2] = rot_mat_d(2)-current_pose_[2];
+
+  pose_err_[4] = rot_mat_d(4)-current_pose_[4];
+  pose_err_[5] = rot_mat_d(5)-current_pose_[5];
+  pose_err_[6] = rot_mat_d(6)-current_pose_[6];
+
+  pose_err_[8] =  rot_mat_d(8)-current_pose_[8];
+  pose_err_[9] =  rot_mat_d(9)-current_pose_[9];
+  pose_err_[10] = rot_mat_d(10)-current_pose_[10];
+
+
+  pose_err_[12] = goal_pose_[0]-current_pose_[12];
+  pose_err_[13] = goal_pose_[1]-current_pose_[13];
+  pose_err_[14] = goal_pose_[2]-current_pose_[14];
+
+  if (pose_err_[0] > 0.01 || pose_err_[1] > 0.01 || pose_err_[2] > 0.01) {
     //ROS_INFO_STREAM("err_x = " << err_x);
     //ROS_INFO_STREAM("err_y = " << err_y);
     //ROS_INFO_STREAM("err_z = " << err_z);
@@ -100,13 +140,21 @@ void CartesianPoseController::update(const ros::Time& /* time */,
     // angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec()/ (3.0 + 20.0*sqrt(pow(err_x, 2.0)+pow(err_y, 2.0)+pow(err_z, 2.0)))));
     angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec()/ 5.0 ));
 
-    delta_x = err_x * std::sin(angle);
-    delta_y = err_y * std::sin(angle);
-    delta_z = err_z * std::sin(angle);
+    new_pose[0] = pose_err_[0]* std::sin(angle);
+    new_pose[1] = pose_err_[1]* std::sin(angle);
+    new_pose[2] = pose_err_[2]* std::sin(angle);
 
-    new_pose[12] += delta_x;
-    new_pose[13] += delta_y;
-    new_pose[14] += delta_z;
+    new_pose[4] = pose_err_[4]* std::sin(angle);
+    new_pose[5] = pose_err_[5]* std::sin(angle);
+    new_pose[6] = pose_err_[6]* std::sin(angle);
+
+    new_pose[8] =  pose_err_[8]* std::sin(angle);
+    new_pose[9] =  pose_err_[9]* std::sin(angle);
+    new_pose[10] = pose_err_[10]* std::sin(angle);
+
+    new_pose[12] += pose_err_[12] * std::sin(angle);
+    new_pose[13] += pose_err_[13] * std::sin(angle);
+    new_pose[14] += pose_err_[14] * std::sin(angle);
   }
 
   cartesian_pose_handle_->setCommand(new_pose);

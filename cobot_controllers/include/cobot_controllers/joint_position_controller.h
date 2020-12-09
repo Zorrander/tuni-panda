@@ -6,26 +6,16 @@
 #include <string>
 #include <vector>
 
-#include <tf/tf.h>
-#include <tf/transform_listener.h>
-#include <eigen_conversions/eigen_msg.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
 #include <geometry_msgs/Pose.h>
 #include <std_msgs/Empty.h>
+#include <std_msgs/Float64MultiArray.h>
 
-#include <franka/model.h>
-#include <franka/robot_state.h>
-#include <franka_hw/franka_state_interface.h>
 
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/robot_hw.h>
 #include <ros/node_handle.h>
 #include <ros/time.h>
-
-#include <Eigen/Dense>
 
 namespace cobot_controllers {
 
@@ -35,50 +25,28 @@ class JointPositionController : public controller_interface::MultiInterfaceContr
   bool init(hardware_interface::RobotHW* robot_hardware, ros::NodeHandle& node_handle) override;
   void starting(const ros::Time&) override;
   void update(const ros::Time&, const ros::Duration& period) override;
+  void newTargetCallback(const std_msgs::Float64MultiArray::ConstPtr& pose_msg) ;
 
  private:
 
   ros::Duration elapsed_time_;
-  
+
   hardware_interface::PositionJointInterface* position_joint_interface_;
   std::vector<hardware_interface::JointHandle> position_joint_handles_;
 
-  franka_hw::FrankaStateInterface* state_interface;
-  franka_hw::FrankaStateHandle* state_handle_;
-  franka::RobotState* robot_state;
-  franka::Model model;
-
-  // get state variables
-  std::array<double, 7> coriolis_array;
-  std::array<double, 42> jacobian_array;
-
-  Eigen::Map<const Eigen::Matrix<double, 7, 1>> coriolis;
-  Eigen::Map<const Eigen::Matrix<double, 6, 7>> jacobian;
-
-  double k_p;
-  double k_d;
-  double T_d;
-
-  std::array<double, 7> error_{};
-  std::array<double, 7> error_decay_{};
-
-  std::vector<double> current_command_{};
-  std::vector<double> current_joint_values;
-  std::vector<double> goal_joint_values;
-
-  bool found_ik;
   std::array<bool, 7> is_target_reached_{};
   bool target_reached_;
-
-  robot_state::RobotStatePtr kinematic_state;
-  robot_model::RobotModelPtr kinematic_model ;
-  robot_state::JointModelGroup* joint_model_group ;
 
   ros::NodeHandle n_;
   ros::Subscriber sub_cmd_ ;
   ros::Publisher target_reached_pub ;
 
-  void newTargetCallback(const geometry_msgs::Pose::ConstPtr& pose_msg) ;
+  std::array<double, 7> goal_pose_{};
+  std::array<double, 7> initial_pose_{};
+  std::array<double, 7> current_pose_{};
+
+  std::array<double, 7> delta_{};
+  std::array<double, 7> err_{};
 
 };
 

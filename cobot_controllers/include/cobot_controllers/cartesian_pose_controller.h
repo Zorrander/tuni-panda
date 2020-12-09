@@ -10,6 +10,8 @@
 #include <ros/node_handle.h>
 #include <ros/time.h>
 
+#include <Eigen/Geometry>
+
 #include <geometry_msgs/Pose.h>
 #include <std_msgs/Empty.h>
 
@@ -39,9 +41,13 @@ class CartesianPoseController
 
   ros::Duration elapsed_time_;
 
+  Eigen::Matrix3d rot_mat_d;
+
+  std::array<double, 16> pose_err_{};
   std::array<double, 16> initial_pose_{};
   std::array<double, 16> current_pose_{};
-  std::array<double, 3> goal_pose_{};
+  std::array<double, 7> goal_pose_{};
+
 };
 
 }  // namespace cobot_controllers

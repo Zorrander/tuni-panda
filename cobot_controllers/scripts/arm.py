@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Float64MultiArray
 from std_srvs.srv import Trigger, TriggerResponse
 from cobot_controllers.arm import Arm
 from cobot_msgs.srv import *
@@ -18,7 +18,7 @@ test_cartesian_postion = {
 }
 
 def go_to_joint_space_goal(request, robot):
-    robot.go_to_joint_space_goal(request.position)
+    robot.go_to_joint_space_goal(request.position.data)
     return ReachJointPoseResponse(True)
 
 def go_to_cartesian_goal(request, robot, pub):
@@ -26,7 +26,7 @@ def go_to_cartesian_goal(request, robot, pub):
     print(request)
     robot.switchToArmNavigationControl("")
     reset(request, pub)
-    robot.go_to_cartesian_goal(request.point)
+    robot.go_to_cartesian_goal(request.pose)
     return ReachCartesianPoseResponse(True)
 
 def move_to(request, robot):
@@ -54,8 +54,9 @@ def reset(request, pub):
 if __name__ == '__main__':
     rospy.init_node('panda_arm_control')
 
-    pub_controller = rospy.Publisher('/new_target', Pose, queue_size=10)
-    panda_arm = Arm(pub_controller)
+    cartesian_pub_controller = rospy.Publisher('/new_target', Pose, queue_size=10)
+    # joint_pub_controller = rospy.Publisher('/new_target', Float64MultiArray, queue_size=10)
+    panda_arm = Arm(cartesian_pub_controller)
 
     sub = rospy.Subscriber("/target_reached", Empty, panda_arm.switchToForceImpedanceControl)
 
@@ -69,4 +70,5 @@ if __name__ == '__main__':
     s7 = rospy.Service('reset', Trigger, lambda msg: reset(msg, pub) )
 
     print("Arm ready")
+
     rospy.spin()

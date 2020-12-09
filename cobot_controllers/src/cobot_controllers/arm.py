@@ -4,6 +4,7 @@ import rospy
 import sys
 import moveit_commander
 import math
+from std_msgs.msg import Float64MultiArray
 from geometry_msgs.msg import Pose
 from controller_manager_msgs.srv import SwitchController, SwitchControllerRequest
 import yaml
@@ -78,10 +79,11 @@ class Arm(object):
         except Exception as e:
             print(e)
 
-    def go_to_cartesian_goal(self, point):
+    def go_to_cartesian_goal(self, pose):
         print("go_to_cartesian_goal")
+        '''
         try:
-
+            point = pose.position
             print("z --- {}".format(point.z))
             next_point = self.group.get_current_pose().pose
             print("current z --- {}".format(next_point.position.z))
@@ -93,6 +95,7 @@ class Arm(object):
                 goal.position.x = point.x
                 goal.position.y = point.y
                 goal.position.z = next_point.position.z
+                goal.orientation = pose.orientation
                 self.pub_controller.publish(goal)
 
                 # self.group.set_pose_target(next_point)
@@ -115,6 +118,7 @@ class Arm(object):
                 goal.position.x = next_point.position.x
                 goal.position.y = next_point.position.y
                 goal.position.z = point.z
+                goal.orientation = pose.orientation
                 self.pub_controller.publish(goal)
 
                 # self.group.set_pose_target(next_point)
@@ -135,11 +139,27 @@ class Arm(object):
 
         except Exception as e:
             print(e)
+        '''
+        self.set_speed(0.75)
+        self.move_to('part_approach')
+        self.move_to('box')
 
     def go_to_joint_space_goal(self, joints_goal):
+        '''
         arm_joints = self.group.get_current_joint_values()
         for i in range(0, len(joints_goal)):
             arm_joints[i] = joints_goal[i]
         self.group.go(arm_joints, wait=True)
         self.group.stop()
         self.group.clear_pose_targets()
+        '''
+        self.set_speed(0.75)
+        self.move_to('part_approach')
+        self.move_to('part')
+        '''
+        goal = Float64MultiArray()
+        for i in range(len(joints_goal)):
+            goal.data.append(joints_goal[i])
+        print(goal)
+        self.pub_controller.publish(goal)
+        '''
