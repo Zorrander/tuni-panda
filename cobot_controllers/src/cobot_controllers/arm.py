@@ -81,7 +81,7 @@ class Arm(object):
 
     def go_to_cartesian_goal(self, pose):
         print("go_to_cartesian_goal")
-        '''
+
         try:
             point = pose.position
             print("z --- {}".format(point.z))
@@ -143,6 +143,7 @@ class Arm(object):
         self.set_speed(0.75)
         self.move_to('part_approach')
         self.move_to('box')
+        '''
 
     def go_to_joint_space_goal(self, joints_goal):
         '''

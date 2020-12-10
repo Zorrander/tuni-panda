@@ -130,7 +130,6 @@ void CartesianPoseController::update(const ros::Time& /* time */,
   pose_err_[13] = goal_pose_[1]-current_pose_[13];
   pose_err_[14] = goal_pose_[2]-current_pose_[14];
 
-  if (pose_err_[0] > 0.01 || pose_err_[1] > 0.01 || pose_err_[2] > 0.01) {
     //ROS_INFO_STREAM("err_x = " << err_x);
     //ROS_INFO_STREAM("err_y = " << err_y);
     //ROS_INFO_STREAM("err_z = " << err_z);
@@ -138,24 +137,24 @@ void CartesianPoseController::update(const ros::Time& /* time */,
     //ROS_INFO_STREAM("DISTANCE = " << 20.0*sqrt(pow(err_x, 2.0)+pow(err_y, 2.0)+pow(err_z, 2.0)));
 
     // angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec()/ (3.0 + 20.0*sqrt(pow(err_x, 2.0)+pow(err_y, 2.0)+pow(err_z, 2.0)))));
-    angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec()/ 5.0 ));
+  angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_.toSec() / 5.0 ));
 
-    new_pose[0] = pose_err_[0]* std::sin(angle);
-    new_pose[1] = pose_err_[1]* std::sin(angle);
-    new_pose[2] = pose_err_[2]* std::sin(angle);
+    //new_pose[0] = pose_err_[0]* std::sin(angle);
+    //new_pose[1] = pose_err_[1]* std::sin(angle);
+    //new_pose[2] = pose_err_[2]* std::sin(angle);
 
-    new_pose[4] = pose_err_[4]* std::sin(angle);
-    new_pose[5] = pose_err_[5]* std::sin(angle);
-    new_pose[6] = pose_err_[6]* std::sin(angle);
+    //new_pose[4] = pose_err_[4]* std::sin(angle);
+    //new_pose[5] = pose_err_[5]* std::sin(angle);
+    //new_pose[6] = pose_err_[6]* std::sin(angle);
 
-    new_pose[8] =  pose_err_[8]* std::sin(angle);
-    new_pose[9] =  pose_err_[9]* std::sin(angle);
-    new_pose[10] = pose_err_[10]* std::sin(angle);
+    //new_pose[8] =  pose_err_[8]* std::sin(angle);
+    //new_pose[9] =  pose_err_[9]* std::sin(angle);
+    //new_pose[10] = pose_err_[10]* std::sin(angle);
 
-    new_pose[12] += pose_err_[12] * std::sin(angle);
-    new_pose[13] += pose_err_[13] * std::sin(angle);
-    new_pose[14] += pose_err_[14] * std::sin(angle);
-  }
+  new_pose[12] += pose_err_[12] * std::sin(angle);
+  new_pose[13] += pose_err_[13] * std::sin(angle);
+  new_pose[14] += pose_err_[14] * std::sin(angle);
+
 
   cartesian_pose_handle_->setCommand(new_pose);
 }
