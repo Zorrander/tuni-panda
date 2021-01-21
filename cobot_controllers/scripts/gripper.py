@@ -14,18 +14,23 @@ def stop(request, robot):
     robot.stop()
     return TriggerResponse(True)
 
-def move(request, robot):
+def move(request, robot, action_performed_pub):
+    print("MOVE GRIPPER")
     speed = request.speed if request.speed > 0 else 20.0
     width = request.width/100 if request.width > 0 else 0.08
     robot.move(speed, width)
+    print("action performed")
+    action_performed_pub.publish(Empty())
     return MoveGripperResponse(True)
 
-def grasp(request, robot):
+def grasp(request, robot, action_performed_pub):
     print("""grasp""")
     force = request.force if request.force > 0 else 70.0
     #width = request.width/100 if request.width > 0 else 0.004
     width = 0.066
     robot.grasp(force, width)
+    print("action performed")
+    action_performed_pub.publish(Empty())
     return GraspResponse(True)
 
 if __name__ == '__main__':
@@ -35,9 +40,11 @@ if __name__ == '__main__':
 
     sub = rospy.Subscriber("/human_ready", Empty, panda_gripper.grasp_triggered)
 
+    action_performed_pub = rospy.Publisher('/action_performed', Empty, queue_size=10)
+
     homing_service = rospy.Service("home_gripper", Trigger, lambda msg: homing(msg,panda_gripper))
     stop_gripper_service = rospy.Service("stop_gripper", Trigger, lambda msg: stop(msg,panda_gripper))
-    move_gripper_service = rospy.Service("move_gripper", MoveGripper, lambda msg: move(msg,panda_gripper))
-    grasping_service = rospy.Service("grasp", Grasp, lambda msg: grasp(msg,panda_gripper))
+    move_gripper_service = rospy.Service("move_gripper", MoveGripper, lambda msg: move(msg,panda_gripper, action_performed_pub))
+    grasping_service = rospy.Service("grasp", Grasp, lambda msg: grasp(msg,panda_gripper, action_performed_pub))
     print("Gripper Ready")
     rospy.spin()
