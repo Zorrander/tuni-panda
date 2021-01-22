@@ -53,6 +53,13 @@ def reset(request, pub, action_performed_pub):
     action_performed_pub.publish(Empty())
     return TriggerResponse(True, "Robot recovery")
 
+def idle(request, pub, action_performed_pub):
+    action_performed_pub.publish(Empty())
+    return TriggerResponse(True, "Robot idling")
+
+def communicate(request, pub, action_performed_pub):
+    action_performed_pub.publish(Empty())
+    return TriggerResponse(True, "Robot communicate")
 
 if __name__ == '__main__':
     rospy.init_node('panda_arm_control')
@@ -73,6 +80,8 @@ if __name__ == '__main__':
     s5 = rospy.Service('set_speed', RobotSpeed, lambda msg: set_speed(msg,panda_arm) )
     s6 = rospy.Service('get_targets', ListTargets, lambda msg: list_targets(msg,panda_arm) )
     s7 = rospy.Service('reset', Trigger, lambda msg: reset(msg, pub, action_performed_pub) )
+    s8 = rospy.Service('idle', Trigger, lambda msg: idle(msg, pub, action_performed_pub) )
+    s9 = rospy.Service('communicate', Trigger, lambda msg: idle(msg, pub, action_performed_pub) )
 
     print("Arm ready")
 

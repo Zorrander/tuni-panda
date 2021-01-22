@@ -12,7 +12,8 @@
   </include>
 
 
-
+  <rosparam command="load" file="$(find cobot_controllers)/config/configuration.yaml" />
+  <node name="custom_controller_spawner" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="cartesian_impedance_controller"/>
   <!--<rosparam command="load" file="$(find cobot_controllers)/config/pose-configuration.yaml" />
 
     <include file="$(find panda_moveit_config)/launch/move_group.launch">
