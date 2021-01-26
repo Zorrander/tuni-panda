@@ -40,7 +40,8 @@ class Gripper():
         self.homing_client.wait_for_result()
         return self.homing_client.get_result()
 
-    def move(self, speed=20.0, width=0.08):
+    def move(self, speed=20.0, width=0.05):
+        print(width)
         self.move_client.send_goal(
             franka_gripper.msg.MoveGoal(
                 width,
@@ -53,7 +54,7 @@ class Gripper():
     def stop(self):
         pass
 
-    def grasp(self, force, width, speed=20.0, epsilon_inner=0.01, epsilon_outer=0.01):
+    def grasp(self, force, width, speed=20.0, epsilon_inner=0.0005, epsilon_outer=0.0005):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
         print("""
             Grasping with

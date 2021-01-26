@@ -73,11 +73,12 @@ class Arm(object):
         ''' Send robot to a predefined position'''
         self.set_speed(0.75)
         try:
+            '''
             self.group.set_named_target("part_approach")
             self.group.go()
             self.group.stop()
             self.group.clear_pose_targets()
-
+            '''
             self.group.set_named_target(target_name)
             self.group.go()
             self.group.stop()
