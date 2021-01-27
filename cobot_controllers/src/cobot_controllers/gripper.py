@@ -28,7 +28,8 @@ class Gripper():
     def switchToArmNavigationControl(self):
         rospy.loginfo('Switching to arm navigation control')
         switch_msg = SwitchControllerRequest()
-        switch_msg.start_controllers = ["cartesian_pose_controller"]
+        # switch_msg.start_controllers = ["cartesian_pose_controller"]
+        # switch_msg.start_controllers = ["position_joint_trajectory_controller"]
         switch_msg.stop_controllers = ["cartesian_impedance_controller"]
         switch =  self.controller_switcher(switch_msg)
         print(switch.ok)
@@ -54,7 +55,7 @@ class Gripper():
     def stop(self):
         pass
 
-    def grasp(self, force, width, speed=20.0, epsilon_inner=0.0005, epsilon_outer=0.0005):
+    def grasp(self, force, width, speed=20.0, epsilon_inner=0.001, epsilon_outer=0.001):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
         print("""
             Grasping with

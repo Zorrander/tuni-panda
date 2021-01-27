@@ -35,9 +35,10 @@ class Arm(object):
               self.group.remember_joint_values(key, value)
 
     def switchToArmNavigationControl(self, msg):
-        rospy.loginfo('Switching to arm navigation control')
+        rospy.loginfo('Switching to arm navigation control armm')
         switch_msg = SwitchControllerRequest()
-        switch_msg.start_controllers = ["cartesian_pose_controller"]
+        # switch_msg.start_controllers = ["cartesian_pose_controller"]
+        # switch_msg.start_controllers = ["position_joint_trajectory_controller"]
         switch_msg.stop_controllers = ["cartesian_impedance_controller"]
         switch =  self.controller_switcher(switch_msg)
         print(switch.ok)
@@ -47,7 +48,8 @@ class Arm(object):
         rospy.loginfo('Switching to force/impedance control on arm')
         switch_msg = SwitchControllerRequest()
         switch_msg.start_controllers = ["cartesian_impedance_controller"]
-        switch_msg.stop_controllers = ["cartesian_pose_controller"]
+        # switch_msg.stop_controllers = ["cartesian_pose_controller"]
+        # switch_msg.stop_controllers = ["position_joint_trajectory_controller"]
         switch =  self.controller_switcher(switch_msg)
         print(switch.ok)
         return switch.ok
