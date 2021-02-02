@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="auto-close" default="false" doc="Startup mode"/>
+  <arg name="load_gripper" default="false" />
+  <param name="use_sim_time" value="true" type="bool" />
+
+  <!-- send robot urdf to param server -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_hand.urdf.xacro'"/>
+
+  <!-- Fake Calibration -->
+  <node pkg="rostopic" type="rostopic" name="fake_joint_calibration" args="pub /calibrated std_msgs/Bool true" />
+
+  <!-- Webots controller -->
+  <include file="$(find panda_webots)/launch/panda_controller.launch">
+    <arg name="auto-close" value="$(arg auto-close)"/>
+  </include>
+
+  <include file="$(find panda_moveit_config)/launch/move_group.launch">
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+
+    <include file="$(find panda_moveit_config)/launch/moveit_rviz.launch" />
+
+</launch>

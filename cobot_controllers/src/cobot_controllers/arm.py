@@ -81,6 +81,7 @@ class Arm(object):
             self.group.stop()
             self.group.clear_pose_targets()
             '''
+            print("SET NAMED TARGET ", target_name)
             self.group.set_named_target(target_name)
             self.group.go()
             self.group.stop()

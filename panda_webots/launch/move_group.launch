@@ -1,0 +1,7 @@
+
+<launch>
+
+  <node name="move_group_python_interface_tutorial" pkg="panda_webots" type="move_group.py" respawn="false" output="screen">
+  </node>
+
+</launch>

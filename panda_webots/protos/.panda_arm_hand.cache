@@ -1,0 +1,11 @@
+Webots Proto Cache File version 1.5
+protoFileHash: b1398b3fc757c0a8ebf75a116d30eb23
+needsRobotAncestor: 1
+baseType: Robot
+slotType: 
+parameters: translation,rotation,name,controller,controllerArgs,customData,supervisor,synchronization,selfCollision,staticBase
+tags: 
+license:  Apache License 2.0
+licenseUrl:  http://www.apache.org/licenses/LICENSE-2.0
+documentationUrl: 
+info: This\sis\sa\sproto\sfile\sfor\sWebots\sfor\sthe\spanda_arm_hand\nExtracted\sfrom:\spanda_arm_hand.urdf\n
