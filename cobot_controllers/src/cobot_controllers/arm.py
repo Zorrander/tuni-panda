@@ -25,6 +25,7 @@ class Arm(object):
       self.group = moveit_commander.MoveGroupCommander(group_name)
       self.pub_controller = pub_controller
       self.controller_switcher = rospy.ServiceProxy('/controller_manager/switch_controller', SwitchController)
+      self.current_pose = "init_pose"
 
       self.switchToArmNavigationControl("")
 
@@ -74,18 +75,37 @@ class Arm(object):
     def move_to(self, target_name):
         ''' Send robot to a predefined position'''
         self.set_speed(0.75)
+        processed_target_name = target_name.split("_")[0]
+        processed_target_name = ''.join([i for i in processed_target_name if not i.isdigit()])
+        processed_pose = self.current_pose.split("_")[0]
+        processed_pose = ''.join([i for i in processed_pose if not i.isdigit()])
+        print(processed_target_name)
+        print(processed_target_name in ["bolt", "tool"])
+        print(processed_pose)
+        print(processed_pose in ["bolt", "tool"])
         try:
-            '''
-            self.group.set_named_target("part_approach")
-            self.group.go()
-            self.group.stop()
-            self.group.clear_pose_targets()
-            '''
+            if (target_name + "_approach") in self.list_targets():
+                self.group.set_named_target(target_name + "_approach")
+                self.group.go()
+                self.group.stop()
+                self.group.clear_pose_targets()
+            elif (self.current_pose + "_approach") in self.list_targets():
+                self.group.set_named_target(self.current_pose + "_approach")
+                self.group.go()
+                self.group.stop()
+                self.group.clear_pose_targets()
+            if processed_target_name in ["bolt", "tool"] or processed_pose in ["bolt", "tool"]:
+                print("SET NAMED TARGET part_approach " )
+                self.group.set_named_target("part_approach")
+                self.group.go()
+                self.group.stop()
+                self.group.clear_pose_targets()
             print("SET NAMED TARGET ", target_name)
             self.group.set_named_target(target_name)
             self.group.go()
             self.group.stop()
             self.group.clear_pose_targets()
+            self.current_pose = target_name
         except Exception as e:
             print(e)
 
