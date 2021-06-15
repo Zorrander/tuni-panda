@@ -96,7 +96,7 @@ class Arm(object):
                 self.group.clear_pose_targets()
             if processed_target_name in ["bolt", "tool"] or processed_pose in ["bolt", "tool"]:
                 print("SET NAMED TARGET part_approach " )
-                self.group.set_named_target("part_approach")
+                self.group.set_named_target("init_pose")
                 self.group.go()
                 self.group.stop()
                 self.group.clear_pose_targets()

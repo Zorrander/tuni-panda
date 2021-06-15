@@ -17,7 +17,8 @@ def stop(request, robot):
 def move(request, robot, action_performed_pub):
     print("MOVE GRIPPER")
     speed = request.speed if request.speed > 0 else 20.0
-    width = request.width/100 if request.width > 0 else 0.05
+    # width = request.width/100 if request.width > 0 else 0.05
+    width = 0.3
     robot.move(speed, width)
     print("action performed")
     action_performed_pub.publish(Empty())
