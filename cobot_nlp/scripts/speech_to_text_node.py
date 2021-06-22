@@ -4,6 +4,7 @@ import rospy
 import speech_recognition as sr
 from std_msgs.msg import String
 from os import path
+import difflib
 
 publisher = rospy.Publisher('/command', String, queue_size=10)
 
@@ -24,16 +25,24 @@ def callbackAudio(recognizer, audio):
 
 def sphinx_callback(recognizer, audio):
     # recognize speech using Sphinx
+
+    keyword_entries=["give","come","take", "store", "go","back","here","tool","bolt","kit", "box", "place"]
+
     try:
         print("Think")
         # print("Sphinx thinks you said " + recognizer.recognize_sphinx(audio, grammar=path.join(path.dirname(path.realpath(__file__)), 'counting.gram')))
-        cmd = recognizer.recognize_sphinx(audio, keyword_entries=[("pass", 1.0), ("reach", 1.0), ("grasp", 1.0), ("open", 1.0), ("peg", 1.0)])
+        cmd = recognizer.recognize_google(audio)
         bow = cmd.strip().split(' ')
         print(bow)
-        print(type(bow))
-        if type(bow) == list:
-            print(bow[2], bow[0])
-        publisher.publish(bow[2] + ' ' + bow[0])
+        output=[]
+        for item in bow:
+                output.extend( difflib.get_close_matches(item, keyword_entries))
+        print(output)
+        print(output[0] + ' ' + output[1])
+        publisher.publish(output[0] + ' ' + output[1])
+        #if type(bow) == list:
+        #    print(bow[2], bow[0])
+        #publisher.publish(output[0] + ' ' + bow[1])
         # print("Sphinx thinks you said " + recognizer.recognize_sphinx(audio))
     except sr.UnknownValueError:
         print("Sphinx could not understand audio")
@@ -46,9 +55,9 @@ if __name__ == '__main__':
     rospy.init_node('speech_to_text_input')
     try:
         r = sr.Recognizer()
-        m = sr.Microphone()
+        m = sr.Microphone() #device_index=1
         with m as source:
-            r.adjust_for_ambient_noise(source, duration=2)
+            r.adjust_for_ambient_noise(source, duration=3.0)
             while not rospy.is_shutdown():
                 print("say something!")
                 audio = r.listen(m)
