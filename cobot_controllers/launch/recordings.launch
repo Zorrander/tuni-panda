@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+  <arg name="robot_ip" default="130.230.37.115" />
+  <arg name="load_gripper" default="true" />
+
+  <include file="$(find franka_control)/launch/franka_control.launch" >
+    <arg name="robot_ip" value="$(arg robot_ip)" />
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+
+  <include file="$(find cobot_controllers)/launch/impedance_control.launch" />
+
+  <include file="$(find cobot_controllers)/launch/moveit_control.launch">
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+
+  <node name="recordings" type="run_recordings.py" pkg="cobot_controllers" output="screen" />
+
+</launch>

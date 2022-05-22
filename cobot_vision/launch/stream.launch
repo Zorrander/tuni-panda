@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+    <include file="$(find cobot_vision)/launch/camera.launch"/>
+
+    <node name="grasp_server" type="image_stream_realtime.py" pkg="cobot_vision" output="screen" />
+    
+
+</launch>

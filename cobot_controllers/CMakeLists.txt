@@ -9,38 +9,36 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(catkin REQUIRED COMPONENTS
     controller_interface
     hardware_interface
+    franka_example_controllers
     pluginlib
     franka_hw
     roscpp
     rospy
-    std_msgs
-    geometry_msgs
-    message_generation
+    genmsg
+    tf
+    tf_conversions
+    eigen_conversions
+    moveit_core
+    moveit_ros_planning_interface
 )
 
 catkin_python_setup()
 
-add_service_files(
-  FILES
-  ReachJointPose.srv
-  ReachCartesianPose.srv
-  NamedTarget.srv
-  RobotSpeed.srv
-  MoveGripper.srv
-  Grasp.srv
-)
-
-generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
 catkin_package(
    LIBRARIES cobot_controllers
    CATKIN_DEPENDS
       controller_interface
       hardware_interface
+      franka_example_controllers
       pluginlib
       franka_hw
       roscpp
-      message_runtime
+      tf
+      tf_conversions
+      eigen_conversions
+      moveit_core
+      moveit_ros_planning_interface
 )
 
 include_directories(
@@ -49,5 +47,13 @@ include_directories(
 )
 
 add_library(cobot_controllers
+    src/joint_velocity_controller.cpp
     src/cartesian_pose_controller.cpp
+    src/joint_position_controller.cpp
+    # src/cartesian_impedance_controller.cpp
+    # src/joint_impedance_controller.cpp
 )
+
+
+target_link_libraries(cobot_controllers ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+

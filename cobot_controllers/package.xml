@@ -4,7 +4,7 @@
   <version>0.0.0</version>
   <description>The cobot_controllers package</description>
 
-  <maintainer email="alex@todo.todo">alex</maintainer>
+  <maintainer email="alexandre.angleraud@tuni.fi">Alexandre Angleraud</maintainer>
 
   <license>TODO</license>
 
@@ -12,12 +12,15 @@
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
   <depend>franka_hw</depend>
+  <depend>franka_example_controllers</depend>
   <depend>roscpp</depend>
-
+  <depend>rospy</depend>
   <buildtool_depend>catkin</buildtool_depend>
-  
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>tf</depend>
+  <depend>tf_conversions</depend>
+  <depend>eigen_conversions</depend>
 
   <export>
       <controller_interface plugin="${prefix}/cobot_plugin.xml"/>

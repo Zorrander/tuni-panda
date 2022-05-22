@@ -1,10 +1,51 @@
 <library path="lib/libcobot_controllers">
+  <class  name="cobot_controllers/JointVelocityController"
+          type="cobot_controllers::JointVelocityController"
+          base_class_type="controller_interface::ControllerBase">
+
+    <description>
+      Atakan's project.
+    </description>
+  </class>
+
+
   <class  name="cobot_controllers/CartesianPoseController"
           type="cobot_controllers::CartesianPoseController"
           base_class_type="controller_interface::ControllerBase">
 
     <description>
-      Demonstrate reach of the Franka
+      Custom controller for the Franka Emika arm.
     </description>
   </class>
+
+
+    <class  name="cobot_controllers/JointPositionController"
+          type="cobot_controllers::JointPositionController"
+          base_class_type="controller_interface::ControllerBase">
+
+    <description>
+      Custom controller for the Franka Emika arm.
+    </description>
+  </class>
+
+
+      <class  name="cobot_controllers/CartesianImpedanceController"
+          type="cobot_controllers::CartesianImpedanceController"
+          base_class_type="controller_interface::ControllerBase">
+
+    <description>
+      Controller responsible for insertion PLC component on a rail.
+    </description>
+  </class>
+
+        <class  name="cobot_controllers/JointImpedanceController"
+          type="cobot_controllers::JointImpedanceController"
+          base_class_type="controller_interface::ControllerBase">
+
+    <description>
+      Second controller responsible for insertion PLC component on a rail.
+    </description>
+  </class>
+
+
 </library>

@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+  <arg name="robot_ip" />
+  <arg name="load_gripper" default="true" />
+  <include file="$(find franka_control)/launch/franka_control.launch" >
+    <arg name="robot_ip" value="$(arg robot_ip)" />
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+
+  <rosparam command="load" file="$(find cobot_controllers)/config/configuration.yaml" />
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="test_controller"/>
+  <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot.rviz"/>
+
+
+  <include file="$(find franka_control_wrappers)/launch/cartesian_velocity_controller.launch">
+    <arg name="stopped" value="true" />
+  </include>
+  
+  <node name="tf_broadcaster" pkg="cobot_controllers" type="transform_ee.py" output="screen"/>
+  <node name="tf_broadcaster2" pkg="cobot_controllers" type="links_distances.py" output="screen"/>
+
+</launch>

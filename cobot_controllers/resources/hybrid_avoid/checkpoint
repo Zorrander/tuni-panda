@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/atakan/catkin_ws/src/cobot_controllers/resources/hybrid_avoid/params_800"
+all_model_checkpoint_paths: "/home/atakan/catkin_ws/src/cobot_controllers/resources/hybrid_avoid/params_800"

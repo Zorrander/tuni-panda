@@ -1,0 +1,32 @@
+23 state 
+return (self.agent.get_joint_positions() +
+                self.agent.get_joint_velocities() +
+                pos_ee + pos_target + pos_obstacle)
+
+
+action_bound = [-1, 1]
+
+POS_MIN, POS_MAX = [0.40, -0.45, 0.05], [0.75, 0.45, 0.08]
+BILL_POS_MIN, BILL_POS_MAX = [0.40, -0.45, 0.20], [0.75, 0.45, 0.20]
+#init_bill_pos= [0.4,-0.7,1.25]
+
+thresh= 0.05
+penalty= 10
+closest = 0.10
+furthest = 2.5
+
+c1 = 1000
+c2 = 100
+c3 = 60
+
+c4 = 100
+c9 = 0.05
+c10 = 10
+
+rdanger = 0.15
+rtouch = 0.05
+rget = 0.05
+
+c = 0.1
+p = 8
+d_ref = 0.2

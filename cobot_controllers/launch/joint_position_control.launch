@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+
+  <rosparam command="load" file="$(find cobot_controllers)/config/configuration.yaml" />
+
+  <node name="joint_position_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="w2_controller"/>
+  
+  <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot.rviz"/>
+
+
+</launch>

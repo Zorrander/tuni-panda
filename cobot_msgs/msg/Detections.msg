@@ -1,0 +1,1 @@
+cobot_msgs/Detection[] detections
