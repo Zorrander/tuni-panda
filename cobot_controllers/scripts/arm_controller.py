@@ -1,15 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import time
 import sys
 import rospy
 import moveit_commander
-from cobot_controllers.srv import *
 from cobot_controllers.moveit_controller import MoveitArm
 from cobot_msgs.srv import *
 from std_srvs.srv import Trigger, TriggerResponse
 from std_msgs.msg import Empty
-from franka_control.msg import ErrorRecoveryActionGoal
+from franka_msgs.msg import ErrorRecoveryActionGoal
 # from franka_msgs.srv import SetForceTorqueCollisionBehavior, SetForceTorqueCollisionBehaviorRequest
 
 '''
