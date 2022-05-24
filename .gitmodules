@@ -1,4 +1,5 @@
 [submodule "TuniMetricsCompetition"]
+    active = false
 	path = TuniMetricsCompetition
 	url = git@github.com:KulunuOS/TuniMetricsCompetition.git
-    ignore = all
+    ignore = dirty
