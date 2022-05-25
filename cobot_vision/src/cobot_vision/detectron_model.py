@@ -38,11 +38,64 @@ class DetectronModel(object):
         self.cfg.SOLVER.MAX_ITER = 1000
         self.cfg.MODEL.ROI_HEADS.NUM_CLASSES = 5
         self.cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 12
-        self.cfg.MODEL.DEVICE="cuda"
+        self.cfg.MODEL.DEVICE="cpu"
         self.cfg.INPUT.MIN_SIZE_TEST=0
         self.cfg.MODEL.WEIGHTS = os.path.join("",self.model_filepath)
         self.predictor=DefaultPredictor(self.cfg)
         print('Model loading complete!')
+
+
+
+    def correct_orientation_ref(self, angle):
+
+        if angle <= 90:
+            angle += 90
+        if angle > 90:
+            angle += -270
+        return angle
+
+    def get_angle(self, input_kps, mode):
+
+        # kps_x_list = input_kps[0][:,0]
+        # kps_y_list = input_kps[0][:,1]
+        kps_x_list = input_kps[:,0]
+        kps_y_list = input_kps[:,1]
+        kps_x_list = kps_x_list[::-1]
+        kps_y_list = kps_y_list[::-1]
+
+        d = {'X' : kps_x_list,
+            'Y' : kps_y_list}
+
+        df = pd.DataFrame(data = d)
+        # move the origin
+        x = (df["X"] - df["X"][0])
+        y = (df["Y"] - df["Y"][0])
+
+        if mode == 1:
+
+            list_xy = (np.arctan2(y,x)*180/math.pi).astype(int)
+            occurence_count = Counter(list_xy)
+            return occurence_count.most_common(1)[0][0]
+        else:
+            x = np.mean(x)
+            y= np.mean(y)
+            return np.arctan2(y,x)*180/math.pi
+
+
+    def get_kps_center(self, input_kps) :
+        # kps_x_list = input_kps[0][:,0]
+        # kps_y_list = input_kps[0][:,1]
+        kps_x_list = input_kps[:,0]
+        kps_y_list = input_kps[:,1]
+        kps_x_list = kps_x_list[::-1]
+        kps_y_list = kps_y_list[::-1]
+        d = {'X' : kps_x_list,
+            'Y' : kps_y_list}
+        df = pd.DataFrame(data = d)
+
+        x = np.mean(df["X"])
+        y= np.mean(df["Y"])
+        return [x,y]
 
     def predict(self, data):
         result = [] 
@@ -56,7 +109,7 @@ class DetectronModel(object):
 
         for i in range(len(bounding_box)):
             #if pred_classes[i]==0:
-            result.append([1, pred_classes[i], np.array(bounding_box[i]), correct_orientation_ref(get_angle(keypoints_pred[i],1)), get_kps_center(keypoints_pred[i])])
+            result.append([1, pred_classes[i], np.array(bounding_box[i]), self.correct_orientation_ref(self.get_angle(keypoints_pred[i],1)), self.get_kps_center(keypoints_pred[i])])
 
         else:
             print("No detection")

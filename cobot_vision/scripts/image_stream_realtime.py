@@ -323,7 +323,25 @@ def image_analyze(msg):
 
 
 if __name__ == '__main__':
+    '''
+    myimage = cv2.imread("samples/image.png")
+    clone = myimage.copy()
+    model = detectron_model("models/metrics_model.pth")
+    time1 = time.time()
+    instance, bounding_box, pred_angle, pred_kps_center = model.predict(myimage)
+    #print(time.time()-time1)
 
+    center_coordinates = (int(pred_kps_center[0])-320, 240-int(pred_kps_center[1]))
+    print (center_coordinates)
+    radius = 10
+    color = (255, 0, 0)
+    thickness = 2
+    clone = cv2.circle(myimage, center_coordinates, radius, color, thickness)
+
+    out_img = cv2.rectangle(clone, (int(bounding_box[0]), int(bounding_box[1])), (int(bounding_box[2]), int(bounding_box[3])), (255,0,0), 2)
+    cv2.imshow("lalala", out_img)
+    cv2.waitKey(5000)
+    '''
     rospy.init_node('grasp_server', anonymous=True)
     object_locator = detectron_model("/home/opendr/catkin_ws/src/cobot_vision/models/metrics_model.pth")
     object_num = 1
@@ -331,7 +349,6 @@ if __name__ == '__main__':
     
     detection_server = rospy.Service('/detect_grasp_pose', GraspPoseDetection, image_analyze)
 
-    detection_pub = rospy.Publisher('/objects_detected', Detections, queue_size=10)
 
     # detection_request_sub = rospy.Subscriber("/request_detection", Int16, request_callback)
     sub=  rospy.Subscriber("/camera/color/image_raw", Image, callback)

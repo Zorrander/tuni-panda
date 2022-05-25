@@ -1,2 +1,2 @@
 ---
-cobot_msgs/Detection detection
+cobot_msgs/Detections detection
