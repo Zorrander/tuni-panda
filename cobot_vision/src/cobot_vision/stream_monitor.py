@@ -1,26 +1,53 @@
+import tf
 import cv2
 import rospy
 import threading
 import numpy as np
 from cobot_msgs.msg import *
 from cobot_msgs.srv import *
+from sensor_msgs.msg import CameraInfo
+from cobot_vision.camera_parameters import CameraParameters
+from cobot_vision.poses_converter import PosesConverter
 
 class ImageStreamMonitor():
 	
-	def __init__(self, object_detector, camera_params):
+	def __init__(self, object_detector):
 		self.object_detector = object_detector
-		self.camera_params = camera_params
 		self.detection_pub = rospy.Publisher('/objects_detected', Detections, queue_size=10)
-		#rospy.Timer(rospy.Duration(2), self.reset_detection_callback)
+		self.robot_detection_pub = rospy.Publisher('/objects_detected_robot', Detections, queue_size=10)
+		# rospy.Timer(rospy.Duration(2), self.reset_detection_callback)
+
+		self.listener_tf = tf.TransformListener()
+
+		self.camera_params = CameraParameters()
+		rospy.Subscriber("/camera/color/camera_info", CameraInfo, self.camera_params.camera_info_callback)
+
+		self.pose_converter = PosesConverter(self.listener_tf, self.camera_params, "/panda_link0", "/camera_color_frame")
+
+		self.detections = {
+			1: [],
+			2: [],
+			3: [],
+			4: [],
+			5: [],
+		}
 
 	def reset_detection_callback(self, event):
 	    print('Timer called at ' + str(event.current_real))
 	    self.detections = []
 
 	def image_analyze(self, msg):
-	    response = GraspPoseDetectionResponse()
-	    response.detection = self.detections
-	    return response
+		msg = Detections() 
+		response = GraspPoseDetectionResponse()
+		for object_class in self.detections:
+			for x,y in self.detections[object_class]:
+				detection = Detection()
+				detection.obj_class = object_class
+				detection.x = x
+				detection.y = y
+				msg.detections.append(detection)
+		response.detection = msg
+		return response
 
 	def image_analyze_stream(self, rgb_image):
 
@@ -62,8 +89,10 @@ class ImageStreamMonitor():
 
 	            msg.detections.append(detection)
 	            result.append([pred_class, bounding_box, pred_angle, pred_kps_center])
+
+	            self.store_detection(pred_class, dist[0], dist[1])
+	            self.publish_robot_object_poses()
 	    if result: 
-	    	self.detections = msg
 	    	self.detection_pub.publish(msg)
 	    	self.draw_outputs(rgb_image, result)
 	    '''
@@ -71,6 +100,35 @@ class ImageStreamMonitor():
 	    else:
 	        return [[9999,9999,9999,9999],9999,[9999,9999]]
 		'''
+
+	def store_detection(self, pred_class, x, y):
+		pose = self.pose_converter.convert2Dpose(x, y)
+		if not self.detections[pred_class]:
+			self.detections[pred_class] = [(pose.position.x, pose.position.y)]
+		else:
+			if (not self.object_already_stored(pred_class, pose.position.x, pose.position.y)):
+				print("[STREAMER] append ({}, {})".format(x, y))
+				self.detections[pred_class].append((pose.position.x, pose.position.y)) 
+
+	def object_already_stored(self, pred_class, x1, y1):
+		distance_threshold = 0.01 # in m
+		result = False 
+		for x2,y2 in self.detections[pred_class]:
+			if (abs(x1-x2) < distance_threshold and abs(y1-y2) < distance_threshold):
+				result = True 
+				break 
+		return result
+
+	def publish_robot_object_poses(self):
+		msg = Detections()
+		for object_class in self.detections:
+			for x,y in self.detections[object_class]:
+				detection = Detection()
+				detection.obj_class = object_class
+				detection.x = x
+				detection.y = y
+				msg.detections.append(detection)
+		self.robot_detection_pub.publish(msg)
 
 	def draw_outputs(self, myimage, outputs):
 		for pred_class, bounding_box, pred_angle, pred_kps_center in outputs:

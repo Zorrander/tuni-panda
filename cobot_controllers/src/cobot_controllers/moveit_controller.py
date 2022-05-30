@@ -65,8 +65,25 @@ class MoveitArm(object):
 
     def move_to_target_cartesian_controller(self, joint_values):
         return
-
-   
+    
+    def move_to_2D_cartesian_target(self, pose):
+        try:
+            self.group.set_max_velocity_scaling_factor(0.3)
+            next_point = self.group.get_current_pose().pose
+            next_point.position.x = pose[0]
+            next_point.position.y = pose[1]
+            print("GOAL")
+            print(next_point)
+            self.group.set_pose_target(next_point)
+            plan = self.group.go(wait=True)
+            self.group.stop()
+            self.group.clear_pose_targets()
+        except:
+            print("Error in go_to_cartesian_goal")
+        finally: 
+            ee_pose = self.group.get_current_pose()
+            return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
+            
     def move_to_target(self, joint_values):
         print("GOAL")
         print(list(joint_values))
@@ -139,4 +156,8 @@ class MoveitArm(object):
 
     def handle_stop(self, req):
         ee_pose, ee_orientation = self.stop()
+        return StopActionResponse(ee_pose, ee_orientation)
+
+    def handle_move_to_2D_cartesian_target(self, req):
+        ee_pose, ee_orientation = self.move_to_2D_cartesian_target(req.pose)
         return StopActionResponse(ee_pose, ee_orientation)
