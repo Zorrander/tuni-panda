@@ -34,13 +34,13 @@ def all_close(goal, actual, tolerance):
 class SingleDemoGraspAction(object):
 
     """MoveIt_Commander"""
-    def __init__(self, listener_tf):
+    def __init__(self, listener_tf, camera_params):
         moveit_commander.roscpp_initialize(sys.argv)
         robot = moveit_commander.RobotCommander()
         scene = moveit_commander.PlanningSceneInterface()
         group_name = "panda_arm"
         group = moveit_commander.MoveGroupCommander(group_name)
-        # hand_grp = moveit_commander.MoveGroupCommander("hand")
+        hand_grp = moveit_commander.MoveGroupCommander("hand")
         display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
                                                        moveit_msgs.msg.DisplayTrajectory,
                                                        queue_size=20)
@@ -52,12 +52,13 @@ class SingleDemoGraspAction(object):
         eef_link = group.get_end_effector_link()
         group_names = robot.get_group_names()
 
+        self.camera_params = camera_params
         self.listener_tf = listener_tf
         self.detect_grasp_pose = rospy.ServiceProxy('detect_grasp_pose', GraspPoseDetection)
         self.robot = robot
         self.scene = scene
         self.group = group
-        # self.hand_grp = hand_grp
+        self.hand_grp = hand_grp
         self.display_trajectory_publisher = display_trajectory_publisher
         self.planning_frame = planning_frame
         self.eef_link = eef_link
@@ -66,7 +67,7 @@ class SingleDemoGraspAction(object):
         self.last_msg_idx = 1e10
         self.last_msg_used = 1e10
         self.detections = [1e10, 1e10, 1e10, 1e10, 1e10]
-        self.camera_focal = 550
+        self.camera_focal = 610
 
     # callback to receive commands in x-y plane
     '''
@@ -101,10 +102,10 @@ class SingleDemoGraspAction(object):
         cartesian_plan, fraction = self.plan_linear_z(-0.3)
         self.execute_plan(cartesian_plan)
 
-    '''
+    
     def open_hand(self, wait=True):
         joint_goal = self.hand_grp.get_current_joint_values()
-        joint_goal[0] = 0.0399
+        joint_goal[0] = 0.025
 
         self.hand_grp.set_goal_joint_tolerance(0.001)
         self.hand_grp.go(joint_goal, wait=wait)
@@ -139,8 +140,8 @@ class SingleDemoGraspAction(object):
         group.stop()
         current_joints = self.hand_grp.get_current_joint_values()
         return all_close(joint_goal, current_joints, 0.01)
-    '''
-    # joint space
+        # joint space
+        
     def go_to_joint_state(self, cmd):
 
         group = self.group
@@ -191,7 +192,10 @@ class SingleDemoGraspAction(object):
         group = self.group
         waypoints = []
         wpose = group.get_current_pose().pose
-        wpose.position.x += dist
+        # wpose.position.x += dist
+        wpose.position.x = dist
+        print("move x of ", dist)
+        print("move x to ", wpose.position.x)
         waypoints.append(copy.deepcopy(wpose))
         (plan, fraction) = group.compute_cartesian_path(waypoints, 0.01, 0.0)
         return plan, fraction
@@ -202,25 +206,30 @@ class SingleDemoGraspAction(object):
         group = self.group
         waypoints = []
         wpose = group.get_current_pose().pose
-        wpose.position.y += dist
+        #wpose.position.y += dist
+        wpose.position.y = dist
+        print("move y of ", dist)
+        print("move y to ", wpose.position.y)
         waypoints.append(copy.deepcopy(wpose))
         (plan, fraction) = group.compute_cartesian_path(waypoints, 0.01, 0.0)
         return plan, fraction
 
     # linear movemonet planning along z axis of the reference frame
     def plan_linear_z(self, dist):
-        self.group.set_max_velocity_scaling_factor(0.5)
+        self.group.set_max_velocity_scaling_factor(0.2)
         group = self.group
         waypoints = []
         wpose = group.get_current_pose().pose
-        wpose.position.z += dist
+        print(wpose)
+        wpose.position.z = dist
+        #wpose.position.z += -0.1
 
-        print("move z of ", dist)
         print("move z to ", wpose.position.z)
 
         waypoints.append(copy.deepcopy(wpose))
         (plan, fraction) = group.compute_cartesian_path(waypoints, 0.01, 0.0)
         return plan, fraction
+   
 
     # execute planned movements
     def execute_plan(self, plan):
@@ -228,9 +237,26 @@ class SingleDemoGraspAction(object):
         group = self.group
         group.execute(plan, wait=True)
 
+
+    def go_to_cartesian_goal(self, x, y):
+        try:
+            self.group.set_max_velocity_scaling_factor(0.3)
+            next_point = self.group.get_current_pose().pose
+            next_point.position.x = x
+            next_point.position.y = y
+            print(next_point)
+            self.group.set_pose_target(next_point)
+            plan = self.group.go(wait=True)
+            self.group.stop()
+            self.group.clear_pose_targets()
+        except:
+            print("Error in go_to_cartesian_goal")
+
     # rotation in camera frame (not only last revolut joint)
     def fix_angle(self, rotcmd):
-        ps = self.listener_tf.lookupTransform('/camera_color_optical_frame', '/panda_link8', rospy.Time(0))
+        #now = rospy.Time.now()
+        self.listener_tf.waitForTransform("/camera_color_frame", "/panda_link8", rospy.Time(0), rospy.Duration(4.0))
+        ps = self.listener_tf.lookupTransform('/camera_color_frame', '/panda_link8', rospy.Time(0))
         my_point = PoseStamped()
         my_point.header.frame_id = "camera_color_frame"
         my_point.header.stamp = rospy.Time(0)
@@ -250,12 +276,15 @@ class SingleDemoGraspAction(object):
         ps = self.listener_tf.transformPose("/panda_link0", my_point)
         self.go_to_pose_goal(ps)
 
+
     # using center of keypoints as target pose, translates the 2D coordinate of
     # Target pose in camera frame into world frame and execute grasping action in 3D
     def reach_grasp_hover_kps(self, kps_x, kps_y):
-        self.listener_tf = tf.TransformListener()
-        (trans1, rot1) = self.listener_tf.lookupTransform('/panda_link0', '/camera_color_optical_frame', rospy.Time(0))
-        z_to_surface = trans1[2]
+        #self.listener_tf = tf.TransformListener()
+        self.listener_tf.waitForTransform("/panda_link0", "/camera_color_frame", rospy.Time(0), rospy.Duration(4.0))
+        #t = self.listener_tf.getLatestCommonTime("/panda_link0", "/camera_color_frame")
+        (trans1, rot1) = self.listener_tf.lookupTransform("/panda_link0", "/camera_color_frame", rospy.Time(0)) 
+        z_to_surface = trans1[2] - 0.2
         to_world_scale = z_to_surface / self.camera_focal
         x_dist = kps_x * to_world_scale
         y_dist = kps_y * to_world_scale
@@ -272,7 +301,7 @@ class SingleDemoGraspAction(object):
         my_point.pose.orientation.z = quat[2]
         my_point.pose.orientation.w = quat[3]
         ps = self.listener_tf.transformPose("/panda_link0", my_point)
-
+        
         my_point1 = PoseStamped()
         my_point1.header.frame_id = "/panda_link8"
         my_point1.header.stamp = rospy.Time(0)
@@ -289,27 +318,34 @@ class SingleDemoGraspAction(object):
         ps1.pose.position.x = ps.pose.position.x
         ps1.pose.position.y = ps.pose.position.y
         ps1.pose.position.z = ps.pose.position.z
+        
+        self.go_to_pose_goal(ps)
 
-        self.go_to_pose_goal(ps1)
-        self.approach_grasp()
-        self.close_hand()
 
     # Using the center of bounding box as target, approach the target pose and translates
     # 2D to 3D from image frame to world frame respectively
     def reach_hover(self, x ,y):
-        (trans1, rot1) = self.listener_tf.lookupTransform('/panda_link0', '/camera_color_optical_frame', rospy.Time(0))
-        z_to_surface = trans1[2]
-        to_world_scale = z_to_surface / self.camera_focal
+        #t = self.listener_tf.getLatestCommonTime("/panda_link0", "/camera_color_frame")
+        self.listener_tf.waitForTransform("/panda_link0", "/camera_color_frame", rospy.Time(0), rospy.Duration(4.0))
+        (trans1, rot1) = self.listener_tf.lookupTransform("/panda_link0", "/camera_color_frame", rospy.Time(0)) 
 
+        # z_to_surface = trans1[2] - 0.13 # This was OKAY - centered but only along one dimension.
+        z_to_surface = trans1[2] - 0.14
+        print("z to surface")
+        print(z_to_surface)
+        #to_world_scale = z_to_surface / self.camera_focal
+        to_world_scale = z_to_surface / self.camera_params.camera_focal
         x_dist = x * to_world_scale
         y_dist = y * to_world_scale
 
         my_point = PoseStamped()
-        my_point.header.frame_id = "camera_color_frame"
+        my_point.header.frame_id = "/camera_color_frame"
         my_point.header.stamp = rospy.Time(0)
+        
         my_point.pose.position.x = 0
         my_point.pose.position.y = -x_dist
         my_point.pose.position.z = y_dist
+
         theta = 0
         quat = tf.transformations.quaternion_from_euler(0, 0, theta)
         my_point.pose.orientation.x = quat[0]
@@ -318,19 +354,36 @@ class SingleDemoGraspAction(object):
         my_point.pose.orientation.w = quat[3]
         ps = self.listener_tf.transformPose("/panda_link0", my_point)
 
-        (trans, rot) = self.listener_tf.lookupTransform('/panda_link0', '/camera_color_optical_frame', rospy.Time(0))
+        
+        #t = self.listener_tf.getLatestCommonTime("/panda_link0", "/camera_color_frame")
+        '''
+        self.listener_tf.waitForTransform("/panda_link0", "/camera_color_frame", rospy.Time(0), rospy.Duration(4.0))
+        (trans, rot) = self.listener_tf.lookupTransform("/panda_link0", "/camera_color_frame", rospy.Time(0)) 
         data = (ps.pose.position.x - trans[0], ps.pose.position.y - trans[1])
-
+    
         cartesian_plan, fraction = self.plan_linear_x(data[0])
         self.execute_plan(cartesian_plan)
         cartesian_plan, fraction = self.plan_linear_y(data[1])
         self.execute_plan(cartesian_plan)
+        '''
+        #cartesian_plan, fraction = self.plan_linear_x(ps.pose.position.x)
+        #self.execute_plan(cartesian_plan)
+        #cartesian_plan, fraction = self.plan_linear_y(ps.pose.position.y)
+        #self.execute_plan(cartesian_plan)
+        self.go_to_cartesian_goal(ps.pose.position.x, ps.pose.position.y)
+
 
     def approach_grasp(self):
+        #self.listener_tf.waitForTransform("/panda_link0", "/camera_color_frame", rospy.Time(0), rospy.Duration(4.0))
+        #(trans1, rot1) = self.listener_tf.lookupTransform("/panda_link0", "/camera_color_frame", rospy.Time(0)) 
+
+        #z_to_surface = trans1[2] - 0.078
+
         my_point = PoseStamped()
-        my_point.header.frame_id = "camera_color_frame"
+        my_point.header.frame_id = "/camera_color_frame"
         my_point.header.stamp = rospy.Time(0)
         my_point.pose.position.x = 0.48
+        #my_point.pose.position.x = z_to_surface
         my_point.pose.position.y = 0.005  # TODO y element should be "0"
         my_point.pose.position.z = 0
         theta = 0
@@ -341,13 +394,24 @@ class SingleDemoGraspAction(object):
         my_point.pose.orientation.w = quat[3]
         ps = self.listener_tf.transformPose("/panda_link0", my_point)
 
-        (trans, rot) = self.listener_tf.lookupTransform('/panda_link0', '/camera_color_optical_frame', rospy.Time(0))
+        #t = self.listener_tf.getLatestCommonTime("/panda_link0", "/camera_color_frame")
+        self.listener_tf.waitForTransform("/panda_link0", "/camera_color_frame", rospy.Time(0), rospy.Duration(4.0))
+        (trans, rot) = self.listener_tf.lookupTransform("/panda_link0", "/camera_color_frame", rospy.Time(0)) 
+
         data = (ps.pose.position.x - trans[0], ps.pose.position.y - trans[1], ps.pose.position.z - trans[2])
+        '''
         cartesian_plan, fraction = self.plan_linear_x(data[0])
         self.execute_plan(cartesian_plan)
         cartesian_plan, fraction = self.plan_linear_y(data[1])
         self.execute_plan(cartesian_plan)
         cartesian_plan, fraction = self.plan_linear_z(data[2])
+        self.execute_plan(cartesian_plan)
+        '''
+        cartesian_plan, fraction = self.plan_linear_x(ps.pose.position.x)
+        self.execute_plan(cartesian_plan)
+        cartesian_plan, fraction = self.plan_linear_y(ps.pose.position.y)
+        self.execute_plan(cartesian_plan)
+        cartesian_plan, fraction = self.plan_linear_z(ps.pose.position.z)
         self.execute_plan(cartesian_plan)
 
     # sending a rquesst message to detection server and waits for a detection reply
