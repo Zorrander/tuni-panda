@@ -37,6 +37,8 @@ class ImageStreamMonitor():
 	    self.detections = []
 
 	def image_analyze(self, msg):
+		print("image_analyze")
+		print(self.detections)
 		msg = Detections() 
 		response = GraspPoseDetectionResponse()
 		for object_class in self.detections:

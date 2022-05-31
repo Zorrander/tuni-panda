@@ -29,6 +29,7 @@ add_service_files(
   TakeAction.srv
   TakeCartesianAction.srv
   Take2DCartesianAction.srv
+  Take1DCartesianAction.srv
   StopAction.srv
   GraspPoseDetection.srv
 )

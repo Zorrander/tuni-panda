@@ -11,7 +11,7 @@ class PosesConverter():
         self.listener_tf = listener_tf
         self.robot_coodinates_frame = robot_coodinates_frame
         self.camera_coordinates_frame = camera_coordinates_frame
-        self.tabletop_height = 0.14 # height difference between the robot base and the tabletop where objects are manipulated
+        self.tabletop_height = 0.13 # height difference between the robot base and the tabletop where objects are manipulated
 
     def convert2Dpose(self, x, y):
 	    #t = self.listener_tf.getLatestCommonTime(self.robot_coodinates_frame, self.camera_coordinates_frame)

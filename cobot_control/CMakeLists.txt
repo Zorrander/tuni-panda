@@ -28,3 +28,7 @@ catkin_package(
    message_runtime
    actionlib_msgs
 )
+
+catkin_install_python(PROGRAMS scripts/stopper.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

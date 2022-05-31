@@ -2,6 +2,7 @@
 import time 
 from cobot_msgs.srv import *
 import rospy
+import copy
 
 class MoveitArm(object):
 
@@ -65,7 +66,30 @@ class MoveitArm(object):
 
     def move_to_target_cartesian_controller(self, joint_values):
         return
-    
+
+    # linear movemonet planning along z axis of the reference frame
+    def plan_linear_z(self, dist):
+        try:
+            self.group.set_max_velocity_scaling_factor(0.2)
+            group = self.group
+            waypoints = []
+            wpose = group.get_current_pose().pose
+            wpose.position.z = dist
+            print("move z to ", wpose.position.z)
+            waypoints.append(copy.deepcopy(wpose))
+            (plan, fraction) = group.compute_cartesian_path(waypoints, 0.01, 0.0)
+            self.group.execute(plan)
+            self.group.stop()
+            self.group.clear_pose_targets()
+        except Exception as e:
+            print("Error in move_to_1D_cartesian_target")
+            print(e)
+        finally:
+            ee_pose = self.group.get_current_pose()
+            ee_position = ee_pose.pose.position
+            ee_orientation = ee_pose.pose.orientation
+            return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
+            
     def move_to_2D_cartesian_target(self, pose):
         try:
             self.group.set_max_velocity_scaling_factor(0.3)
@@ -78,10 +102,13 @@ class MoveitArm(object):
             plan = self.group.go(wait=True)
             self.group.stop()
             self.group.clear_pose_targets()
-        except:
-            print("Error in go_to_cartesian_goal")
+        except Exception as e:
+            print("Error in move_to_2D_cartesian_target")
+            print(e)
         finally: 
             ee_pose = self.group.get_current_pose()
+            ee_position = ee_pose.pose.position
+            ee_orientation = ee_pose.pose.orientation
             return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
             
     def move_to_target(self, joint_values):
@@ -160,4 +187,8 @@ class MoveitArm(object):
 
     def handle_move_to_2D_cartesian_target(self, req):
         ee_pose, ee_orientation = self.move_to_2D_cartesian_target(req.pose)
-        return StopActionResponse(ee_pose, ee_orientation)
+        return Take2DCartesianActionResponse(ee_pose, ee_orientation)
+
+    def handle_move_to_1D_cartesian_target(self, req):
+        ee_pose, ee_orientation = self.plan_linear_z(req.z_pose)
+        return Take1DCartesianActionResponse(ee_pose, ee_orientation)
