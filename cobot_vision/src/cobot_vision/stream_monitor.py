@@ -1,5 +1,6 @@
 import tf
 import cv2
+import math
 import rospy
 import threading
 import numpy as np
@@ -22,7 +23,7 @@ class ImageStreamMonitor():
 		self.camera_params = CameraParameters()
 		rospy.Subscriber("/camera/color/camera_info", CameraInfo, self.camera_params.camera_info_callback)
 
-		self.pose_converter = PosesConverter(self.listener_tf, self.camera_params, "/panda_link0", "/camera_color_frame")
+		self.pose_converter = PosesConverter(self.listener_tf, self.camera_params, "/panda_link0", "/panda_link8","/camera_color_frame")
 
 		self.detections = {
 			1: [],
@@ -42,80 +43,91 @@ class ImageStreamMonitor():
 		msg = Detections() 
 		response = GraspPoseDetectionResponse()
 		for object_class in self.detections:
-			for x,y in self.detections[object_class]:
+			for x,y, quat in self.detections[object_class]:
 				detection = Detection()
 				detection.obj_class = object_class
 				detection.x = x
 				detection.y = y
+				detection.quaternion = quat
 				msg.detections.append(detection)
 		response.detection = msg
 		return response
 
 	def image_analyze_stream(self, rgb_image):
 
-	    t = threading.currentThread()
-	    dt2_correction_flag=0
+		t = threading.currentThread()
+		dt2_correction_flag=0
 
-	    analyze_img=rgb_image.copy()
-	    (winW, winH) = (224, 224)
-	    timer=0
-	    
-	    result = []
-	    msg = Detections()
-	    for instance, pred_class, bounding_box, pred_angle, pred_kps_center in self.object_detector.predict(analyze_img):
-	        detection = Detection()
-	        bounding_box=np.asarray(bounding_box)
-	        bounding_box=bounding_box.astype(int)
-	        
-	        if (instance > 0):
-	            x1, y1, x2, y2 = bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]
-	            ctr_X = int((bounding_box[0]+bounding_box[2])/2)
-	            ctr_Y = int((bounding_box[1]+bounding_box[3])/2)
-	            angle = pred_angle
-	            #ref_x = 640/2
-	            #ref_y = 480/2
-	            ref_x = self.camera_params.ctrX
-	            ref_y = self.camera_params.ctrY
-	            dist = [ctr_X - ref_x, ref_y - ctr_Y]
-	            dist_kps_ctr = [pred_kps_center[0] - ref_x, ref_y - pred_kps_center[1]]
-	            # x_robot, y_robot = convert_detection_pose(dist[0], dist[1])
-	            # msg.x = x_robot 
-	            # msg.y = y_robot
-	            detection.x = dist[0]
-	            detection.y = dist[1]
-	            detection.bounding_box = x1, y1, x2, y2
-	            detection.kps_x = pred_kps_center[0]
-	            detection.kps_y = pred_kps_center[1]
-	            detection.angle = pred_angle
-	            detection.obj_class = pred_class
+		analyze_img=rgb_image.copy()
+		(winW, winH) = (224, 224)
+		timer=0
 
-	            msg.detections.append(detection)
-	            result.append([pred_class, bounding_box, pred_angle, pred_kps_center])
+		result = []
+		msg = Detections()
+		for instance, pred_class, bounding_box, pred_angle, pred_kps_center in self.object_detector.predict(analyze_img):
+		    detection = Detection()
+		    bounding_box=np.asarray(bounding_box)
+		    bounding_box=bounding_box.astype(int)
+		    
+		    if (instance > 0):
+		        x1, y1, x2, y2 = bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]
+		        ctr_X = int((bounding_box[0]+bounding_box[2])/2)
+		        ctr_Y = int((bounding_box[1]+bounding_box[3])/2)
+		        quat = self.pose_converter.convertAngle2Quaternion(pred_angle)
+		        #ref_x = 640/2
+		        #ref_y = 480/2
+		        ref_x = self.camera_params.ctrX
+		        ref_y = self.camera_params.ctrY
+		        dist = [ctr_X - ref_x, ref_y - ctr_Y]
+		        dist_kps_ctr = [pred_kps_center[0] - ref_x, ref_y - pred_kps_center[1]]
+		        # x_robot, y_robot = convert_detection_pose(dist[0], dist[1])
+		        # msg.x = x_robot 
+		        # msg.y = y_robot
+		        detection.x = dist[0]
+		        detection.y = dist[1]
+		        detection.bounding_box = x1, y1, x2, y2
+		        detection.kps_x = pred_kps_center[0]
+		        detection.kps_y = pred_kps_center[1]
+		        detection.quaternion = quat
+		        detection.obj_class = pred_class
 
-	            self.store_detection(pred_class, dist[0], dist[1])
-	            self.publish_robot_object_poses()
-	    if result: 
-	    	self.detection_pub.publish(msg)
-	    	self.draw_outputs(rgb_image, result)
-	    '''
-	        return result
-	    else:
-	        return [[9999,9999,9999,9999],9999,[9999,9999]]
+		        msg.detections.append(detection)
+		        result.append([pred_class, bounding_box, pred_angle, pred_kps_center])
+
+		        self.store_detection(pred_class, dist[0], dist[1], quat)
+		        self.publish_robot_object_poses()
+		if result: 
+			self.detection_pub.publish(msg)
+			self.draw_outputs(rgb_image, result)
+
+		if len(self.detections[2]) == 2:
+			obj1 = self.detections[2][0]
+			obj2 = self.detections[2][1]
+			print("THERE ARE TWO GEARS")
+			dist = math.sqrt((obj1[0] - obj2[0])**2 + (obj1[1] - obj2[1])**2)
+			print("dist(gear1 - gear2) = {}".format(dist))
+			if (dist < 0.035):
+				print("They are close enough, grasp them.")
+		'''
+		    return result
+		else:
+		    return [[9999,9999,9999,9999],9999,[9999,9999]]
 		'''
 
-	def store_detection(self, pred_class, x, y):
+	def store_detection(self, pred_class, x, y, quat):
 		pose = self.pose_converter.convert2Dpose(x, y)
+		
 		if not self.detections[pred_class]:
-			self.detections[pred_class] = [(pose.position.x, pose.position.y)]
+			self.detections[pred_class] = [(pose.position.x, pose.position.y, (quat))]
 		else:
 			if (not self.object_already_stored(pred_class, pose.position.x, pose.position.y)):
 				print("[STREAMER] append ({}, {})".format(x, y))
-				self.detections[pred_class].append((pose.position.x, pose.position.y)) 
+				self.detections[pred_class].append((pose.position.x, pose.position.y, (quat))) 
 
 	def object_already_stored(self, pred_class, x1, y1):
 		distance_threshold = 0.01 # in m
 		result = False 
-		for x2,y2 in self.detections[pred_class]:
+		for x2,y2, quat in self.detections[pred_class]:
 			if (abs(x1-x2) < distance_threshold and abs(y1-y2) < distance_threshold):
 				result = True 
 				break 
@@ -124,11 +136,12 @@ class ImageStreamMonitor():
 	def publish_robot_object_poses(self):
 		msg = Detections()
 		for object_class in self.detections:
-			for x,y in self.detections[object_class]:
+			for x,y, quat in self.detections[object_class]:
 				detection = Detection()
 				detection.obj_class = object_class
 				detection.x = x
 				detection.y = y
+				detection.quaternion = quat
 				msg.detections.append(detection)
 		self.robot_detection_pub.publish(msg)
 

@@ -67,6 +67,28 @@ class MoveitArm(object):
     def move_to_target_cartesian_controller(self, joint_values):
         return
 
+    def rotate_ee(self, quaternion):
+        try:
+            self.group.set_max_velocity_scaling_factor(0.2)
+            wpose = self.group.get_current_pose().pose
+            wpose.orientation.x = quaternion[0]
+            wpose.orientation.y = quaternion[1]
+            wpose.orientation.z = quaternion[2]
+            wpose.orientation.w = quaternion[3]
+            self.group.set_pose_target(wpose)
+            self.group.go(wait=True)
+            self.group.stop()
+            self.group.clear_pose_targets()
+        except Exception as e:
+            print("Error in rotate_ee")
+            print(e)
+        finally:
+            ee_pose = self.group.get_current_pose()
+            ee_position = ee_pose.pose.position
+            ee_orientation = ee_pose.pose.orientation
+            return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
+
+            
     # linear movemonet planning along z axis of the reference frame
     def plan_linear_z(self, dist):
         try:
@@ -192,3 +214,7 @@ class MoveitArm(object):
     def handle_move_to_1D_cartesian_target(self, req):
         ee_pose, ee_orientation = self.plan_linear_z(req.z_pose)
         return Take1DCartesianActionResponse(ee_pose, ee_orientation)
+
+    def handle_rotate_ee(self, req):
+        ee_pose, ee_orientation = self.rotate_ee(req.angle)
+        return RotateEEResponse(ee_pose, ee_orientation)
