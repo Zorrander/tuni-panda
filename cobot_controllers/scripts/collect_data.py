@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import time
@@ -62,7 +62,7 @@ class ImageRecorder:
         try:
             # Convert your ROS Image message to OpenCV2
             self.cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-        except CvBridgeError, e:
+        except CvBridgeError as e:
             print(e)
 
 
@@ -70,25 +70,25 @@ def collect_object_data(group, object_id):
     move_to_start(group)
     recorder.save_image("image" + str(7*object_id+1) + ".jpeg")
     time.sleep(1)
-    move_to_cartesian_target(group, 0.1)
+    move_to_cartesian_target(group, 0.2)
     recorder.save_image("image" + str(7*object_id+2) + ".jpeg")
     time.sleep(1)
     rotate(group, clockwise=False)
     recorder.save_image("image" + str(7*object_id+3) + ".jpeg")
     time.sleep(1)
     rotate(group, clockwise=True)
-    move_to_cartesian_target(group, -0.05, 0.2)
+    move_to_cartesian_target(group, -0.1, 0.3)
     recorder.save_image("image" + str(7*object_id+4) + ".jpeg")
     time.sleep(1)
-    move_to_cartesian_target(group, 0.1, -0.2)
+    move_to_cartesian_target(group, 0.2, -0.3)
     rotate(group, clockwise=False)
     recorder.save_image("image" + str(7*object_id+5) + ".jpeg")
     time.sleep(1)
-    move_to_cartesian_target(group, -0.15)
+    move_to_cartesian_target(group, -0.3)
     recorder.save_image("image" + str(7*object_id+6) + ".jpeg")
     rotate(group, clockwise=True)
     rotate(group, clockwise=True)
-    move_to_cartesian_target(group, 0.15, 0.15)
+    move_to_cartesian_target(group, 0.3, 0.3)
     recorder.save_image("image" + str(7*object_id+7) + ".jpeg")
     time.sleep(1)
     move_to_start(group)
@@ -107,13 +107,13 @@ if __name__ == '__main__':
     image_topic = "/camera/color/image_raw"
     rospy.Subscriber(image_topic, Image, recorder.image_callback)
 
+    time.sleep(2)
+
     object_classes = rospy.get_param("/collect_data/object_classes")
 
-    time.sleep(2)
-    
     for i in range(object_classes):
         collect_object_data(group, i)
-        raw_input("Press any key when objects are ready.")
+        input("Press any key when objects are ready.")
 
 
 

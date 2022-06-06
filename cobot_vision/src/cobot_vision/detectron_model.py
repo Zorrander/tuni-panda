@@ -33,7 +33,7 @@ class DetectronModel(object):
         self.cfg=get_cfg()
         self.cfg.merge_from_file(model_zoo.get_config_file("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
         self.cfg.DATALOADER.NUM_WORKERS = 2
-        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.4
+        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.2
         self.cfg.SOLVER.BASE_LR = 0.0008
         self.cfg.SOLVER.MAX_ITER = 1000
         self.cfg.MODEL.ROI_HEADS.NUM_CLASSES = 5

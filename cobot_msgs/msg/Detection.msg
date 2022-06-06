@@ -1,7 +1,6 @@
-uint8 obj_class 
+uint8 obj_class
+string obj_class_name
 float64 x
 float64 y
 float64[4] quaternion
-float64 kps_x
-float64 kps_y
-int32[] bounding_box
+
