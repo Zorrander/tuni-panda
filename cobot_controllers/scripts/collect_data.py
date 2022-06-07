@@ -95,10 +95,10 @@ def collect_object_data(group, object_id):
 
 if __name__ == '__main__':
     rospy.init_node('collect_data', anonymous=True)
-
+    '''
     moveit_commander.roscpp_initialize(sys.argv)
     group_name = "panda_arm"
-
+   
     robot = moveit_commander.RobotCommander()
     scene = moveit_commander.PlanningSceneInterface()
     group = moveit_commander.MoveGroupCommander(group_name)
@@ -114,6 +114,15 @@ if __name__ == '__main__':
     for i in range(object_classes):
         collect_object_data(group, i)
         input("Press any key when objects are ready.")
+    '''
+    recorder = ImageRecorder()
+    image_topic = "/camera/color/image_raw"
+    rospy.Subscriber(image_topic, Image, recorder.image_callback)
 
+    time.sleep(2)
+
+
+    recorder.save_image("calibration1.jpeg")
+    rospy.spin()
 
 

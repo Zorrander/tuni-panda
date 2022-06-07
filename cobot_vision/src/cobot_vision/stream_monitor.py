@@ -19,6 +19,7 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 		self.camera_2_robot_pose_converter = camera_2_robot_pose_converter
 		self.detection_pub = rospy.Publisher('/objects_detected', Detections, queue_size=10)
 		self.robot_detection_pub = rospy.Publisher('/objects_detected_robot', Detections, queue_size=10)
+		self.frame_number = 0
 
 	@abc.abstractmethod
 	def preprocess_img(self, img):
@@ -47,12 +48,9 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 		return self.camera_2_robot_pose_converter.is_robot_connected()
 
 	def image_analyze(self, msg):
-		print("image_analyze")
-		print(self.detections)
 		msg = Detections() 
 		response = GraspPoseDetectionResponse()
 		for object_class in self.detections:
-			print(self.detections[object_class])
 			for x,y, quat in self.detections[object_class]:
 				detection = Detection()
 				detection.obj_class = object_class
@@ -64,34 +62,33 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 
 	def image_analyze_stream(self, rgb_image):
 		# t = threading.currentThread()
+		self.frame_number+=1
 
-		ready_rgb_image = self.preprocess_img(rgb_image)
-		detections = self.predictor.predict(ready_rgb_image)
-	
-		processed_detections = self.process_detections(detections)
-
-		if self.is_robot_connected():
-			print("robot connected")
-			for detection in processed_detections:
-				robot_pose = self.camera_2_robot_pose_converter.convert2Dpose(detection[2][0], detection[2][1])
-				self.store_detection(detection[0], robot_pose.position.x, robot_pose.position.y)
-			self.publish_robot_object_poses()
-		else:
-			print("robot not connected")
+		if self.frame_number > 60 and self.frame_number%6==0:
+			ready_rgb_image = self.preprocess_img(rgb_image)
+			detections = self.predictor.predict(ready_rgb_image)
 		
-		self.publish_results(processed_detections)
-		self.draw_outputs(ready_rgb_image, processed_detections)
+			processed_detections = self.process_detections(detections)
 
-		'''    
-		if len(self.detections[2]) == 2:
-			obj1 = self.detections[2][0]
-			obj2 = self.detections[2][1]
-			#print("THERE ARE TWO GEARS")
-			dist = math.sqrt((obj1[0] - obj2[0])**2 + (obj1[1] - obj2[1])**2)
-			#print("dist(gear1 - gear2) = {}".format(dist))
-			if (dist < 0.035):
-				print("They are close enough, grasp them.")
-		'''
+			if self.is_robot_connected():
+				for detection in processed_detections:
+					robot_pose = self.camera_2_robot_pose_converter.convert2Dpose(detection[2][0], detection[2][1])
+					self.store_detection(detection[0], robot_pose.position.x, robot_pose.position.y)
+				self.publish_robot_object_poses()
+			
+			self.publish_results(processed_detections)
+			self.draw_outputs(ready_rgb_image, processed_detections)
+
+			'''    
+			if len(self.detections[2]) == 2:
+				obj1 = self.detections[2][0]
+				obj2 = self.detections[2][1]
+				#print("THERE ARE TWO GEARS")
+				dist = math.sqrt((obj1[0] - obj2[0])**2 + (obj1[1] - obj2[1])**2)
+				#print("dist(gear1 - gear2) = {}".format(dist))
+				if (dist < 0.035):
+					print("They are close enough, grasp them.")
+			'''
 
 	def store_detection(self, pred_class, x, y, quat=(0,0,0,1)):
 		self.reset_detections()
