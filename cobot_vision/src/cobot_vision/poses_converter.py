@@ -90,7 +90,6 @@ class PosesConverter():
         my_point.orientation.y = quat[1]
         my_point.orientation.z = quat[2]
         my_point.orientation.w = quat[3]
-        print("new point = {}, {}".format(my_point.position.x, my_point.position.y))
         #pose_stamped = self.listener_tf.transformPose(self.robot_coodinates_frame, my_point)
         return my_point
 

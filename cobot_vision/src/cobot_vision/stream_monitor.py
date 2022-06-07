@@ -67,10 +67,9 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 		if self.frame_number > 60 and self.frame_number%6==0:
 			ready_rgb_image = self.preprocess_img(rgb_image)
 			detections = self.predictor.predict(ready_rgb_image)
-		
 			processed_detections = self.process_detections(detections)
-
 			if self.is_robot_connected():
+				self.reset_detections()
 				for detection in processed_detections:
 					robot_pose = self.camera_2_robot_pose_converter.convert2Dpose(detection[2][0], detection[2][1])
 					self.store_detection(detection[0], robot_pose.position.x, robot_pose.position.y)
@@ -79,19 +78,8 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 			self.publish_results(processed_detections)
 			self.draw_outputs(ready_rgb_image, processed_detections)
 
-			'''    
-			if len(self.detections[2]) == 2:
-				obj1 = self.detections[2][0]
-				obj2 = self.detections[2][1]
-				#print("THERE ARE TWO GEARS")
-				dist = math.sqrt((obj1[0] - obj2[0])**2 + (obj1[1] - obj2[1])**2)
-				#print("dist(gear1 - gear2) = {}".format(dist))
-				if (dist < 0.035):
-					print("They are close enough, grasp them.")
-			'''
 
 	def store_detection(self, pred_class, x, y, quat=(0,0,0,1)):
-		self.reset_detections()
 		pred_class = self.classes[pred_class]		
 		if not self.detections[pred_class]:
 			self.detections[pred_class] = [(x, y, (quat))]

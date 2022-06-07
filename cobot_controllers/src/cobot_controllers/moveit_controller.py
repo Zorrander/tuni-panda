@@ -114,14 +114,18 @@ class MoveitArm(object):
             
     def move_to_2D_cartesian_target(self, pose):
         try:
-            self.group.set_max_velocity_scaling_factor(0.3)
+            self.group.set_max_velocity_scaling_factor(0.1)
+            waypoints = []
+
             next_point = self.group.get_current_pose().pose
             next_point.position.x = pose[0]
             next_point.position.y = pose[1]
-            print("GOAL")
-            print(next_point)
-            self.group.set_pose_target(next_point)
-            plan = self.group.go(wait=True)
+            waypoints.append(copy.deepcopy(next_point))
+            (plan, fraction) = self.group.compute_cartesian_path(
+                                   waypoints,   # waypoints to follow
+                                   0.01,        # eef_step
+                                   0.0)         # jump_threshold
+            self.group.execute(plan, wait=True) 
             self.group.stop()
             self.group.clear_pose_targets()
         except Exception as e:
