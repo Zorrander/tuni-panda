@@ -56,6 +56,7 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 				detection.obj_class = object_class
 				detection.x = x
 				detection.y = y
+				detection.angle = quat
 				msg.detections.append(detection)
 		response.detection = msg
 		return response
@@ -72,21 +73,21 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 				self.reset_detections()
 				for detection in processed_detections:
 					robot_pose = self.camera_2_robot_pose_converter.convert2Dpose(detection[2][0], detection[2][1])
-					self.store_detection(detection[0], robot_pose.position.x, robot_pose.position.y)
+					self.store_detection(detection[0], robot_pose, detection[3])
 				self.publish_robot_object_poses()
 			
 			self.publish_results(processed_detections)
 			self.draw_outputs(ready_rgb_image, processed_detections)
 
 
-	def store_detection(self, pred_class, x, y, quat=(0,0,0,1)):
+	def store_detection(self, pred_class, robot_pose, angle):
 		pred_class = self.classes[pred_class]		
 		if not self.detections[pred_class]:
-			self.detections[pred_class] = [(x, y, (quat))]
+			self.detections[pred_class] = [(robot_pose.position.x, robot_pose.position.y, angle)]
 		else:
-			if (not self.object_already_stored(pred_class, x, y)):
+			if (not self.object_already_stored(pred_class, robot_pose.position.x, robot_pose.position.y)):
 				#print("[STREAMER] append ({}, {})".format(x, y))
-				self.detections[pred_class].append((x, y, (quat))) 
+				self.detections[pred_class].append((robot_pose.position.x, robot_pose.position.y, angle)) 
 
 	def object_already_stored(self, pred_class, x1, y1):
 		distance_threshold = 0.01 # in m
@@ -105,7 +106,7 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 				detection.obj_class = object_class
 				detection.x = x
 				detection.y = y
-				detection.quaternion = quat
+				detection.angle = quat
 				msg.detections.append(detection)
 		self.robot_detection_pub.publish(msg)
 

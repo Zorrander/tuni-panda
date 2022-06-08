@@ -1,5 +1,7 @@
-
-import time 
+from tf.transformations import *
+import tf
+import time
+import math 
 from cobot_msgs.srv import *
 import rospy
 import copy
@@ -67,14 +69,30 @@ class MoveitArm(object):
     def move_to_target_cartesian_controller(self, joint_values):
         return
 
-    def rotate_ee(self, quaternion):
+    def rotate_ee(self, angle):
         try:
             self.group.set_max_velocity_scaling_factor(0.2)
+
             wpose = self.group.get_current_pose().pose
-            wpose.orientation.x = quaternion[0]
-            wpose.orientation.y = quaternion[1]
-            wpose.orientation.z = quaternion[2]
-            wpose.orientation.w = quaternion[3]
+
+            roll, pitch, yaw = tf.transformations.euler_from_quaternion([wpose.orientation.x, wpose.orientation.y, wpose.orientation.z, wpose.orientation.w])
+
+            if angle < 0: 
+                angle = angle + math.pi/2
+            
+            yaw = math.pi/4 - angle
+            
+            quat_rotcmd = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
+
+            #q_tf = [quaternion[0], quaternion[1], quaternion[2], quaternion[3]]
+            #q_rot = quaternion_from_euler(0, -math.pi, 2*math.pi)
+            #quat = quaternion_multiply(q_rot, q_tf)
+
+            wpose.orientation.x = quat_rotcmd[0]
+            wpose.orientation.y = quat_rotcmd[1]
+            wpose.orientation.z = quat_rotcmd[2]
+            wpose.orientation.w = quat_rotcmd[3]
+
             self.group.set_pose_target(wpose)
             self.group.go(wait=True)
             self.group.stop()
@@ -92,7 +110,7 @@ class MoveitArm(object):
     # linear movemonet planning along z axis of the reference frame
     def plan_linear_z(self, dist):
         try:
-            self.group.set_max_velocity_scaling_factor(0.2)
+            self.group.set_max_velocity_scaling_factor(0.1)
             group = self.group
             waypoints = []
             wpose = group.get_current_pose().pose
@@ -111,19 +129,26 @@ class MoveitArm(object):
             ee_position = ee_pose.pose.position
             ee_orientation = ee_pose.pose.orientation
             return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
-            
+        
+    def modified_plan(self, plan): 
+        pass
+
+
     def move_to_2D_cartesian_target(self, pose):
         try:
-            self.group.set_max_velocity_scaling_factor(0.1)
+            self.group.set_max_velocity_scaling_factor(0.1) 
             waypoints = []
 
             next_point = self.group.get_current_pose().pose
+
+            eef_step = 0.001 if next_point.position.z < 0.3 else 0.01
+
             next_point.position.x = pose[0]
             next_point.position.y = pose[1]
             waypoints.append(copy.deepcopy(next_point))
             (plan, fraction) = self.group.compute_cartesian_path(
                                    waypoints,   # waypoints to follow
-                                   0.01,        # eef_step
+                                   eef_step,        # eef_step
                                    0.0)         # jump_threshold
             self.group.execute(plan, wait=True) 
             self.group.stop()
