@@ -65,7 +65,7 @@ class ImageStreamMonitor(metaclass=abc.ABCMeta):
 		# t = threading.currentThread()
 		self.frame_number+=1
 
-		if self.frame_number > 60 and self.frame_number%6==0:
+		if self.frame_number > 60 and self.frame_number%12==0:
 			ready_rgb_image = self.preprocess_img(rgb_image)
 			detections = self.predictor.predict(ready_rgb_image)
 			processed_detections = self.process_detections(detections)

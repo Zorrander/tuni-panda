@@ -77,8 +77,9 @@ class PosesConverter():
         mainAxis = mainAxis/np.linalg.norm(mainAxis)
 
         angle = np.arccos(np.clip(np.dot(mainAxis, xVector), -1.0, 1.0))
-        if angle > np.pi/2:
-            angle = angle-np.pi
+        
+        #if angle > np.pi/2:
+        #    angle = angle-np.pi
         return angle
 
 
@@ -109,7 +110,7 @@ class PosesConverter():
         my_point.pose.orientation.z = quat[2]
         my_point.pose.orientation.w = quat[3]
         '''
-        theta = angle / 180 * math.pi
+        #theta = angle / 180 * math.pi
         quat_rotcmd = tf.transformations.quaternion_from_euler(theta, 0, 0)
         quat = tf.transformations.quaternion_multiply(quat_rotcmd, ps[1])
         my_point.pose.orientation.x = quat[0]

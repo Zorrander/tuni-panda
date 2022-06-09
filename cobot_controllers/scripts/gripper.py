@@ -31,8 +31,9 @@ def grasp(request, robot, action_performed_pub):
     #width = request.width/100 if request.width > 0 else 0.004
     width = request.width # 0.008
     #robot.grasp(force, width)
-    robot.grasp(force, width)
-    print("action performed")
+    result = robot.grasp(force, width)
+    print("Grasp performed")
+    print(result)
     action_performed_pub.publish(Empty())
     return GraspResponse(True)
 

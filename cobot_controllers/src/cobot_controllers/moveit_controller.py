@@ -5,6 +5,9 @@ import math
 from cobot_msgs.srv import *
 import rospy
 import copy
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from moveit_msgs.msg import RobotTrajectory 
+
 
 class MoveitArm(object):
 
@@ -76,11 +79,20 @@ class MoveitArm(object):
             wpose = self.group.get_current_pose().pose
 
             roll, pitch, yaw = tf.transformations.euler_from_quaternion([wpose.orientation.x, wpose.orientation.y, wpose.orientation.z, wpose.orientation.w])
-
-            if angle < 0: 
-                angle = angle + math.pi/2
+           
+            print("Original yaw - {}".format(yaw))
+            #if angle < 0: 
+            #    angle = angle + math.pi/2
             
-            yaw = math.pi/4 - angle
+            yaw = angle + math.pi/4 
+            print("Intermediate yaw - {}".format(yaw))
+            print("comparison {}".format(-math.pi + math.pi/4))
+            if yaw > math.pi/4:
+                yaw = yaw - math.pi
+
+            print("New yaw - {}".format(yaw))
+            
+            
             
             quat_rotcmd = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
 
@@ -108,7 +120,7 @@ class MoveitArm(object):
 
             
     # linear movemonet planning along z axis of the reference frame
-    def plan_linear_z(self, dist):
+    def plan_linear_z(self, dist, slow=False):
         try:
             self.group.set_max_velocity_scaling_factor(0.1)
             group = self.group
@@ -118,6 +130,8 @@ class MoveitArm(object):
             print("move z to ", wpose.position.z)
             waypoints.append(copy.deepcopy(wpose))
             (plan, fraction) = group.compute_cartesian_path(waypoints, 0.01, 0.0)
+            if slow:
+                plan = self.modify_plan(plan)
             self.group.execute(plan)
             self.group.stop()
             self.group.clear_pose_targets()
@@ -130,26 +144,43 @@ class MoveitArm(object):
             ee_orientation = ee_pose.pose.orientation
             return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
         
-    def modified_plan(self, plan): 
-        pass
+    def modify_plan(self, plan):
+        new_plan = RobotTrajectory()
+        new_plan.joint_trajectory.joint_names = plan.joint_trajectory.joint_names
+        new_plan.joint_trajectory.header = plan.joint_trajectory.header
+        speed_factor = 0.1
+        for p in plan.joint_trajectory.points:
+            new_p = JointTrajectoryPoint()
+            new_p.time_from_start = p.time_from_start/speed_factor
+
+            new_p.positions = p.positions
+
+            for i in range(len(p.velocities)):
+                new_p.velocities.append(p.velocities[i]*speed_factor)
+
+            for i in range(len(p.accelerations)):
+                new_p.accelerations.append(p.accelerations[i]*speed_factor)
+
+            new_plan.joint_trajectory.points.append(new_p)
+        return new_plan
 
 
-    def move_to_2D_cartesian_target(self, pose):
+    def move_to_2D_cartesian_target(self, pose, slow=False):
         try:
             self.group.set_max_velocity_scaling_factor(0.1) 
             waypoints = []
 
             next_point = self.group.get_current_pose().pose
 
-            eef_step = 0.001 if next_point.position.z < 0.3 else 0.01
-
             next_point.position.x = pose[0]
             next_point.position.y = pose[1]
             waypoints.append(copy.deepcopy(next_point))
             (plan, fraction) = self.group.compute_cartesian_path(
                                    waypoints,   # waypoints to follow
-                                   eef_step,        # eef_step
+                                   0.01,        # eef_step
                                    0.0)         # jump_threshold
+            if slow:
+                plan = self.modify_plan(plan)
             self.group.execute(plan, wait=True) 
             self.group.stop()
             self.group.clear_pose_targets()
@@ -237,11 +268,11 @@ class MoveitArm(object):
         return StopActionResponse(ee_pose, ee_orientation)
 
     def handle_move_to_2D_cartesian_target(self, req):
-        ee_pose, ee_orientation = self.move_to_2D_cartesian_target(req.pose)
+        ee_pose, ee_orientation = self.move_to_2D_cartesian_target(req.pose, req.slow)
         return Take2DCartesianActionResponse(ee_pose, ee_orientation)
 
     def handle_move_to_1D_cartesian_target(self, req):
-        ee_pose, ee_orientation = self.plan_linear_z(req.z_pose)
+        ee_pose, ee_orientation = self.plan_linear_z(req.z_pose, req.slow)
         return Take1DCartesianActionResponse(ee_pose, ee_orientation)
 
     def handle_rotate_ee(self, req):
