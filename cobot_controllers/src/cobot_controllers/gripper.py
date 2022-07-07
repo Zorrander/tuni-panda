@@ -55,7 +55,7 @@ class Gripper():
     def stop(self):
         pass
 
-    def grasp(self, force, width, speed=20.0, epsilon_inner=0.001, epsilon_outer=0.001):
+    def grasp(self, force, width, speed=20.0, epsilon_inner=0.002, epsilon_outer=0.002):
         ''' width, epsilon_inner, epsilon_outer, speed, force '''
         print("""
             Grasping with

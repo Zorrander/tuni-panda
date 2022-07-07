@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
+<<<<<<<< HEAD:panda_tuni/CMakeLists.txt
 project(panda_tuni)
+========
+project(panda_webots)
+>>>>>>>> devel:panda_webots/CMakeLists.txt
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -100,7 +104,11 @@ find_package(catkin REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
+<<<<<<<< HEAD:panda_tuni/CMakeLists.txt
 #  LIBRARIES panda_tuni
+========
+#  LIBRARIES panda_webots
+>>>>>>>> devel:panda_webots/CMakeLists.txt
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -118,7 +126,11 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
+<<<<<<<< HEAD:panda_tuni/CMakeLists.txt
 #   src/${PROJECT_NAME}/panda_tuni.cpp
+========
+#   src/${PROJECT_NAME}/panda_webots.cpp
+>>>>>>>> devel:panda_webots/CMakeLists.txt
 # )
 
 ## Add cmake target dependencies of the library
@@ -129,7 +141,11 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
+<<<<<<<< HEAD:panda_tuni/CMakeLists.txt
 # add_executable(${PROJECT_NAME}_node src/panda_tuni_node.cpp)
+========
+# add_executable(${PROJECT_NAME}_node src/panda_webots_node.cpp)
+>>>>>>>> devel:panda_webots/CMakeLists.txt
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -193,7 +209,11 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
+<<<<<<<< HEAD:panda_tuni/CMakeLists.txt
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_panda_tuni.cpp)
+========
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_panda_webots.cpp)
+>>>>>>>> devel:panda_webots/CMakeLists.txt
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

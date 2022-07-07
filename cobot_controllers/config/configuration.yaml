@@ -1,6 +1,7 @@
 # A custom controller for test
 
-w_controller:
+
+cartesian_pose_controller:
     type: cobot_controllers/CartesianPoseController
     joint_names:
             - panda_joint1
@@ -48,9 +49,12 @@ insertion_controller:
             - panda_joint7
 
 
-impedance_insertion_controller:
-    type: cobot_controllers/JointImpedanceController
+cartesian_velocity_controller:
+    type: cobot_controllers/CartesianVelocityController
     arm_id: panda
+
+joint_position_controller:
+    type: cobot_controllers/JointPositionController
     joint_names:
         - panda_joint1
         - panda_joint2
@@ -59,27 +63,7 @@ impedance_insertion_controller:
         - panda_joint5
         - panda_joint6
         - panda_joint7
-    k_gains:
-        - 600.0
-        - 600.0
-        - 600.0
-        - 600.0
-        - 250.0
-        - 150.0
-        - 50.0
-    d_gains:
-        - 50.0
-        - 50.0
-        - 50.0
-        - 20.0
-        - 20.0
-        - 20.0
-        - 10.0
-    radius: 0.1
-    acceleration_time: 2.0
-    vel_max: 0.15
-    publish_rate: 10.0
-    coriolis_factor: 1.0
+
 
 elbow_controller:
     type: cobot_controllers/ElbowController

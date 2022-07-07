@@ -1,0 +1,26 @@
+#VRML_SIM R2021a utf8
+WorldInfo {
+  coordinateSystem "NUE"
+}
+Viewpoint {
+  orientation -0.058499020379242865 0.9805900432257963 0.1871390705894943 2.2826311599974844
+  position 3.9356950031285862 2.2669495397752297 -4.034290618225493
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 2 2
+  floorTileSize 0.25 0.25
+  wallHeight 0.05
+}
+WoodenBox {
+  translation 0.3 0.1 0
+  size 0.2 0.2 0.2
+}
+panda_arm_hand {
+  translation -0.23 0 0
+  rotation 1 0 0 -1.5707953071795862
+  controller "<extern>"
+}
