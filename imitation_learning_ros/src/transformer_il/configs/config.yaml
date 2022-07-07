@@ -1,0 +1,108 @@
+DEC_INFO:
+    env: 'insert'
+    dataset: 'medium'
+    mode: 'normal'
+    K: 10
+    max_ep_len: 10
+    pct_traj: 1
+    batch_size: 64
+    model_type: 'dt'
+    embed_dim: 128
+    n_layer: 3
+    n_head: 1
+    activation_function: 'relu'
+    dropout: 0.1
+    learning_rate: 0.0001
+    weight_decay: 0.0001
+    warmup_steps: 10000
+    num_eval_episodes: 100
+    max_iters: 10
+    num_steps_per_iter: 10000
+    device: 'cpu'
+    log_to_wandb: False
+    dataset_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/insert-expert.pkl'
+    state_dim: 7
+    act_dim: 7
+    goal_dim: 3
+    weight_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/insert_mlp.pth'
+    dec_normalizer_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/dec_normalizer.npy'
+
+ENC_INFO:
+    env: 'insert'
+    dataset: 'medium'
+    mode: 'normal'
+    K: 12
+    max_ep_len: 10
+    pct_traj: 1
+    batch_size: 256
+    model_type: 'dt'
+    embed_dim: 64
+    n_layer: 3
+    n_head: 1
+    activation_function: 'relu'
+    dropout: 0.1
+    learning_rate: 0.0001
+    weight_decay: 0.0001
+    warmup_steps: 10000
+    num_eval_episodes: 100
+    max_iters: 10
+    num_steps_per_iter: 10000
+    device: 'cpu'
+    log_to_wandb: False
+    dataset_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/insert_goal.npy'
+    data_path_v2: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/infos/'
+    state_dim: 32
+    goal_dim: 3
+    weight_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/insert_goal_encoder_1.0_validated.pth'
+    enc_normalizer_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/enc_normalizer.npy'
+
+DYN_INFO:
+    env: 'insert'
+    dataset: 'medium'
+    mode: 'normal'
+    batch_size: 128
+    embed_dim: 128
+    n_layer: 3
+    n_head: 1
+    activation_function: 'relu'
+    dropout: 0.1
+    learning_rate: 0.0001
+    weight_decay: 0.0001
+    warmup_steps: 10000
+    num_eval_episodes: 100
+    max_iters: 10
+    num_steps_per_iter: 10000
+    device: 'cpu'
+    log_to_wandb: False
+    dataset_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/insert-expert.pkl'
+    state_dim: 7
+    act_dim: 7
+    goal_dim: 3
+    weight_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/dynamics.pth'
+
+
+IMITATION_INFO:
+    resume: False
+    online_rl_data_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/online_rl_data.npy'
+    online_goal_data_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/online_goal_data.npy'
+
+    #policy_state_mean_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/mlp_state_mean.npy'
+    #policy_state_max_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/mlp_state_max.npy'
+    #policy_action_mean_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/mlp_action_mean.npy'
+    #policy_action_max_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/mlp_action_max.npy'
+    #policy_goal_mean_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/mlp_goal_mean.npy'
+    #policy_goal_max_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/mlp_goal_max.npy'
+    #encoder_state_mean_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/enc_state_mean.npy'
+    #encoder_state_std_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/enc_state_std.npy'
+    #encoder_goal_mean_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/enc_goal_mean.npy'
+    #encoder_goal_max_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/enc_goal_max.npy'
+
+    encoder_weight_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/insert_goal_encoder_1.0_validated.pth'
+    policy_weight_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/insert_mlp.pth'
+
+    pretrained_encoder_weight_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/insert_goal_encoder_1.0_validated.pth'
+    pretrained_policy_weight_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/insert_mlp_pretrained.pth'
+
+    explore_prior_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/weights/raw_explore/'
+
+    expert_prior_path: '/home/alex/catkin_ws/src/imitation_learning_ros/src/transformer_il/data/experts/'

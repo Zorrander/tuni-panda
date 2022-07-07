@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+  <!-- 
+  
+  <include file="$(find cobot_controllers)/launch/moveit_control.launch">
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+ 
+  <node name="recordings" type="run_recordings.py" pkg="cobot_controllers" output="screen" />
+
+  -->
+
+  <include file="$(find cobot_controllers)/launch/insert_control.launch" />
+
+  <node name="recordings" type="run_joint_recordings.py" pkg="cobot_controllers" output="screen" />
+
+</launch>

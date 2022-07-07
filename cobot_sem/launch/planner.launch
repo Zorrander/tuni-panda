@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <arg name="world_file"/>
+
+  <node name="semantic_planning" type="real_robot.py" pkg="cobot_sem" output="screen">
+    <param name="world_file" value="$(arg world_file)" />
+  </node>
+  
+</launch>

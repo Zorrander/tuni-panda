@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+
+<launch>
+  
+  <node name="rl_runner" type="supervised_reinforced_runner.py" pkg="imitation_learning_ros"
+   output="screen" />
+  <!--<node name="rl_runner" type="supervised_learning_seq_runner.py" pkg="imitation_learning_ros"
+   output="screen" />-->
+
+
+</launch>
