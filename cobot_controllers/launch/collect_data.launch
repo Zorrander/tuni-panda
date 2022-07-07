@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+  <arg name="load_gripper" default="true" />
+  <arg name="robot_ip" default="172.16.0.2" />
+  <arg name="object_classes"/>
+
+  <include file="$(find franka_control)/launch/franka_control.launch" >
+    <arg name="robot_ip" value="$(arg robot_ip)" />
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+
+  <include file="$(find cobot_controllers)/launch/moveit_control.launch">
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+
+  <node name="collect_data" pkg="cobot_controllers" type="collect_data.py" respawn="false" output="screen">
+    <param name="object_classes" value="$(arg object_classes)" />
+  </node>
+
+
+
+</launch>

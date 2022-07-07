@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+  <rosparam command="load" file="$(find cobot_controllers)/config/configuration.yaml" />
+
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="w2_controller"/>
+  
+  <node name="metrics_assembly" type="metrics_assembly.py" pkg="cobot_controllers" output="screen" />
+ 
+  <node name="panda_gripper_control" type="gripper.py" pkg="cobot_controllers" output="screen" />
+
+</launch>

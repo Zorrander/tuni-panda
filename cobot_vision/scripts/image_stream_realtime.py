@@ -27,7 +27,8 @@ import rospy
 import roslib
 import numpy as np
 from cobot_msgs.srv import GraspPoseDetection, GraspPoseDetectionResponse
-from cobot_msgs.msg import Detection
+from cobot_msgs.msg import Detection, Detections
+import tf
 
 CUDA_LAUNCH_BLOCKING=1
 
@@ -37,8 +38,11 @@ def callback(image_data):
     # rgb_image = CvBridge().imgmsg_to_cv2(data, desired_encoding="rgb8")
     rgb_image = np.frombuffer(image_data.data, dtype=np.uint8).reshape(image_data.height, image_data.width,3)
     rgb_image = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2RGB)
-    bounding_box, pred_angle, pred_kps_center = image_analyze_stream(object_num)
-    draw_outputs(rgb_image, bounding_box, pred_angle, pred_kps_center)
+
+    outputs = image_analyze_stream(object_num)
+    draw_outputs(rgb_image, outputs)
+    #bounding_box, pred_angle, pred_kps_center = image_analyze_stream(object_num)
+    #draw_outputs(rgb_image, bounding_box, pred_angle, pred_kps_center)
 
 
 
@@ -119,16 +123,25 @@ def resize_img(img,size):
 
     raise NotImplementedError
 
-def draw_outputs(myimage, bounding_box, angle, pred_kps_center):
-    center_coordinates = (int(pred_kps_center[0]),int(pred_kps_center[1]))
+def draw_outputs(myimage, outputs):
+    for pred_class, bounding_box, pred_angle, pred_kps_center in outputs:
+        center_coordinates = (int(pred_kps_center[0]),int(pred_kps_center[1]))
+        radius = 10
+        if pred_class==4:
+            color = (255, 0, 0)
+        elif pred_class==1:
+            color = (0, 255, 0)
+        elif pred_class==2:
+            color = (0, 0, 255)
+        elif pred_class==3:
+            color = (255, 255, 0)
+        else:
+            color = (0, 255, 255)
+        thickness = 2
+        clone = cv2.circle(myimage, center_coordinates, radius, color, thickness)
+        out_img = cv2.rectangle(clone, (int(bounding_box[0]), int(bounding_box[1])), (int(bounding_box[2]), int(bounding_box[3])), color, 2)
 
-    radius = 10
-    color = (255, 0, 0)
-    thickness = 2
-    clone = cv2.circle(myimage, center_coordinates, radius, color, thickness)
-    out_img = cv2.rectangle(clone, (int(bounding_box[0]), int(bounding_box[1])), (int(bounding_box[2]), int(bounding_box[3])), (255,0,0), 2)
-
-    cv2.putText(out_img, str(angle), (550,470), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
+    #cv2.putText(out_img, str(angle), (550,470), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
     cv2.namedWindow("output", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("output",1280,960)
     cv2.imshow("output", out_img)
@@ -150,29 +163,37 @@ def image_analyze_stream(msg_id):
     analyze_img=rgb_image.copy()
     (winW, winH) = (224, 224)
     timer=0
+    
+    result = []
+    msg = Detections()
+    for instance, pred_class, bounding_box, pred_angle, pred_kps_center in object_locator.predict(analyze_img):
+        detection = Detection()
+        bounding_box=np.asarray(bounding_box)
+        bounding_box=bounding_box.astype(int)
+        
+        if (instance > 0):
+            x1, y1, x2, y2 = bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]
+            ctr_X = int((bounding_box[0]+bounding_box[2])/2)
+            ctr_Y = int((bounding_box[1]+bounding_box[3])/2)
+            angle = pred_angle
+            ref_x = 640/2
+            ref_y = 480/2
+            dist = [ctr_X - ref_x, ref_y - ctr_Y]
+            dist_kps_ctr = [pred_kps_center[0] - ref_x, ref_y - pred_kps_center[1]]
+            # x_robot, y_robot = convert_detection_pose(dist[0], dist[1])
+            # msg.x = x_robot 
+            # msg.y = y_robot
+            detection.bounding_box = x1, y1, x2, y2
+            detection.kps_x = pred_kps_center[0]
+            detection.kps_y = pred_kps_center[1]
+            detection.angle = pred_angle
+            detection.obj_class = pred_class
 
-    instance, pred_class, bounding_box, pred_angle, pred_kps_center = object_locator.predict(analyze_img)
-    bounding_box=np.asarray(bounding_box)
-    bounding_box=bounding_box.astype(int)
-    msg = Detection()
-    if (instance > 0):
-        x1, y1, x2, y2 = bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]
-        ctr_X = int((bounding_box[0]+bounding_box[2])/2)
-        ctr_Y = int((bounding_box[1]+bounding_box[3])/2)
-        angle = pred_angle
-        ref_x = 640/2
-        ref_y = 480/2
-        dist = [ctr_X - ref_x, ref_y - ctr_Y]
-        dist_kps_ctr = [pred_kps_center[0] - ref_x, ref_y - pred_kps_center[1]]
-
-        msg.bounding_box = x1, y1, x2, y2
-        msg.kps_x = pred_kps_center[0]
-        msg.kps_y = pred_kps_center[1]
-        msg.angle = pred_angle
-        msg.obj_class = pred_class
-
+            msg.detections.append(detection)
+            result.append([pred_class, bounding_box, pred_angle, pred_kps_center])
+    if result:
         detection_pub.publish(msg)
-        return [bounding_box, pred_angle, pred_kps_center]
+        return result
     else:
         return [[9999,9999,9999,9999],9999,[9999,9999]]
     '''
@@ -197,6 +218,36 @@ def image_analyze_stream(msg_id):
         else:
             return [[9999,9999,9999,9999],9999,[9999,9999]]
 	'''
+
+def convert_detection_pose(x ,y):
+    listener_tf = tf.TransformListener()
+    camera_focal = 550
+    (trans1, rot1) = listener_tf.lookupTransform('/panda_link0', '/camera_color_frame', rospy.Time(0))
+    z_to_surface = trans1[2]
+    to_world_scale = z_to_surface / camera_focal
+
+    x_dist = x * to_world_scale
+    y_dist = y * to_world_scale
+
+    my_point = PoseStamped()
+    my_point.header.frame_id = "camera_color_frame"
+    my_point.header.stamp = rospy.Time(0)
+    my_point.pose.position.x = 0
+    my_point.pose.position.y = -x_dist
+    my_point.pose.position.z = y_dist
+    theta = 0
+    quat = tf.transformations.quaternion_from_euler(0, 0, theta)
+    my_point.pose.orientation.x = quat[0]
+    my_point.pose.orientation.y = quat[1]
+    my_point.pose.orientation.z = quat[2]
+    my_point.pose.orientation.w = quat[3]
+    ps = listener_tf.transformPose("/panda_link0", my_point)
+
+    (trans, rot) = listener_tf.lookupTransform('/panda_link0', '/camera_color_frame', rospy.Time(0))
+    data = (ps.pose.position.x - trans[0], ps.pose.position.y - trans[1])
+
+    return [data[0], data[1]]
+
 
 def image_analyze(msg):
 
@@ -272,15 +323,32 @@ def image_analyze(msg):
 
 
 if __name__ == '__main__':
+    '''
+    myimage = cv2.imread("samples/image.png")
+    clone = myimage.copy()
+    model = detectron_model("models/metrics_model.pth")
+    time1 = time.time()
+    instance, bounding_box, pred_angle, pred_kps_center = model.predict(myimage)
+    #print(time.time()-time1)
 
+    center_coordinates = (int(pred_kps_center[0])-320, 240-int(pred_kps_center[1]))
+    print (center_coordinates)
+    radius = 10
+    color = (255, 0, 0)
+    thickness = 2
+    clone = cv2.circle(myimage, center_coordinates, radius, color, thickness)
+
+    out_img = cv2.rectangle(clone, (int(bounding_box[0]), int(bounding_box[1])), (int(bounding_box[2]), int(bounding_box[3])), (255,0,0), 2)
+    cv2.imshow("lalala", out_img)
+    cv2.waitKey(5000)
+    '''
     rospy.init_node('grasp_server', anonymous=True)
-    object_locator = detectron_model("/home/opendr/catkin_ws/src/cobot_vision/models/crank_push.pth")
+    object_locator = detectron_model("/home/opendr/catkin_ws/src/cobot_vision/models/metrics_model.pth")
     object_num = 1
     rgb_image=cv2.imread("samples/image.png")
     
     detection_server = rospy.Service('/detect_grasp_pose', GraspPoseDetection, image_analyze)
 
-    detection_pub = rospy.Publisher('objects_detected', Detection, queue_size=10)
 
     # detection_request_sub = rospy.Subscriber("/request_detection", Int16, request_callback)
     sub=  rospy.Subscriber("/camera/color/image_raw", Image, callback)

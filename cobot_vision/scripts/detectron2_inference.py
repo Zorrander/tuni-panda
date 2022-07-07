@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import detectron2
@@ -24,6 +24,8 @@ import time
 import math
 import pandas as pd
 from collections import Counter
+from cobot_vision.detectron_model import DetectronModel
+
 
 def rot(phi):
 
@@ -122,42 +124,6 @@ def get_kps_center(input_kps) :
     return [x,y]
 
 
-class detectron_model(object):
-
-    def __init__(self, model_filepath):
-        self.model_filepath = model_filepath
-        self.load_graph(model_filepath = self.model_filepath)
-
-    def load_graph(self, model_filepath):
-        self.cfg=get_cfg()
-        self.cfg.merge_from_file(model_zoo.get_config_file("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
-        self.cfg.DATALOADER.NUM_WORKERS = 2
-        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.05
-        self.cfg.SOLVER.BASE_LR = 0.0008
-        self.cfg.SOLVER.MAX_ITER = 1000
-        self.cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
-        self.cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 12
-        self.cfg.MODEL.DEVICE="cuda"
-        self.cfg.INPUT.MIN_SIZE_TEST=0
-        self.cfg.MODEL.WEIGHTS = os.path.join("",self.model_filepath)
-        self.predictor=DefaultPredictor(self.cfg)
-        print('Model loading complete!')
-
-    def predict(self, data):
-        output=self.predictor(data)
-        #print(len(output["instances"]))
-        # print(output["instances"].to("cpu").pred_classes.numpy())
-        pred_classes = output["instances"].to("cpu").pred_classes.numpy()
-        bounding_box = output["instances"].to("cpu").pred_boxes.tensor.numpy()
-        keypoints_pred =  output["instances"].to("cpu").pred_keypoints.numpy()
-
-        for i in range(len(bounding_box)):
-            if pred_classes[i]==0:
-              return 1, pred_classes[i], np.array(bounding_box[i]), correct_orientation_ref(get_angle(keypoints_pred[i],1)), get_kps_center(keypoints_pred[i])
-
-        else:
-            print("No detection")
-            return 0, [-1,-1,-1,-1] , -1, [-1, -1]
 
 if __name__ == '__main__':
     #
@@ -181,7 +147,7 @@ if __name__ == '__main__':
         # pub.publish(msg)
     myimage = cv2.imread("samples/image.png")
     clone = myimage.copy()
-    model = detectron_model("models/model_final.pth")
+    model = detectron_model("models/metrics_model.pth")
     time1 = time.time()
     instance, bounding_box, pred_angle, pred_kps_center = model.predict(myimage)
     #print(time.time()-time1)

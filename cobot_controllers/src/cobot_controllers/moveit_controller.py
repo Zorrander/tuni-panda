@@ -1,10 +1,13 @@
-
-import time 
+from tf.transformations import *
+import tf
+import time
+import math 
 from cobot_msgs.srv import *
 import rospy
-import copy 
+import copy
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from moveit_msgs.msg import RobotTrajectory 
 
-from std_srvs.srv import TriggerResponse
 
 class MoveitArm(object):
 
@@ -18,7 +21,6 @@ class MoveitArm(object):
         self.arm_joints_PANEL = [0.40683915349204014, 0.05011774442954318, -0.5303004122417656, -2.5375107996756565, -0.014617423742530854, 2.6364270890547146, 2.229896400718366]
         self.arm_joints_INIT =  [0.3853664 , 0.49662741, -0.44943702, -2.27425249  , 0.06632516, 2.99395411,2.39860492]
         
-        self.interrupt = False 
         #self.arm_joints_INIT =  [ 0.50523354 , 0.46390782, -0.44010135 , -2.3131034  , 0.10804452  ,3.02839653 , 2.44997405]
 
     def read_bot_info(self):
@@ -70,11 +72,131 @@ class MoveitArm(object):
     def move_to_target_cartesian_controller(self, joint_values):
         return
 
-   
+    def rotate_ee(self, angle):
+        try:
+            self.group.set_max_velocity_scaling_factor(0.2)
+
+            wpose = self.group.get_current_pose().pose
+
+            roll, pitch, yaw = tf.transformations.euler_from_quaternion([wpose.orientation.x, wpose.orientation.y, wpose.orientation.z, wpose.orientation.w])
+           
+            print("Original yaw - {}".format(yaw))
+            #if angle < 0: 
+            #    angle = angle + math.pi/2
+            
+            yaw = angle + math.pi/4 
+            print("Intermediate yaw - {}".format(yaw))
+            print("comparison {}".format(-math.pi + math.pi/4))
+            if yaw > math.pi/4:
+                yaw = yaw - math.pi
+
+            print("New yaw - {}".format(yaw))
+            
+            
+            
+            quat_rotcmd = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
+
+            #q_tf = [quaternion[0], quaternion[1], quaternion[2], quaternion[3]]
+            #q_rot = quaternion_from_euler(0, -math.pi, 2*math.pi)
+            #quat = quaternion_multiply(q_rot, q_tf)
+
+            wpose.orientation.x = quat_rotcmd[0]
+            wpose.orientation.y = quat_rotcmd[1]
+            wpose.orientation.z = quat_rotcmd[2]
+            wpose.orientation.w = quat_rotcmd[3]
+
+            self.group.set_pose_target(wpose)
+            self.group.go(wait=True)
+            self.group.stop()
+            self.group.clear_pose_targets()
+        except Exception as e:
+            print("Error in rotate_ee")
+            print(e)
+        finally:
+            ee_pose = self.group.get_current_pose()
+            ee_position = ee_pose.pose.position
+            ee_orientation = ee_pose.pose.orientation
+            return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
+
+            
+    # linear movemonet planning along z axis of the reference frame
+    def plan_linear_z(self, dist, slow=False):
+        try:
+            self.group.set_max_velocity_scaling_factor(0.1)
+            group = self.group
+            waypoints = []
+            wpose = group.get_current_pose().pose
+            wpose.position.z = dist
+            print("move z to ", wpose.position.z)
+            waypoints.append(copy.deepcopy(wpose))
+            (plan, fraction) = group.compute_cartesian_path(waypoints, 0.01, 0.0)
+            if slow:
+                plan = self.modify_plan(plan)
+            self.group.execute(plan)
+            self.group.stop()
+            self.group.clear_pose_targets()
+        except Exception as e:
+            print("Error in move_to_1D_cartesian_target")
+            print(e)
+        finally:
+            ee_pose = self.group.get_current_pose()
+            ee_position = ee_pose.pose.position
+            ee_orientation = ee_pose.pose.orientation
+            return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
+        
+    def modify_plan(self, plan):
+        new_plan = RobotTrajectory()
+        new_plan.joint_trajectory.joint_names = plan.joint_trajectory.joint_names
+        new_plan.joint_trajectory.header = plan.joint_trajectory.header
+        speed_factor = 0.1
+        for p in plan.joint_trajectory.points:
+            new_p = JointTrajectoryPoint()
+            new_p.time_from_start = p.time_from_start/speed_factor
+
+            new_p.positions = p.positions
+
+            for i in range(len(p.velocities)):
+                new_p.velocities.append(p.velocities[i]*speed_factor)
+
+            for i in range(len(p.accelerations)):
+                new_p.accelerations.append(p.accelerations[i]*speed_factor)
+
+            new_plan.joint_trajectory.points.append(new_p)
+        return new_plan
+
+
+    def move_to_2D_cartesian_target(self, pose, slow=False):
+        try:
+            self.group.set_max_velocity_scaling_factor(0.1) 
+            waypoints = []
+
+            next_point = self.group.get_current_pose().pose
+
+            next_point.position.x = pose[0]
+            next_point.position.y = pose[1]
+            waypoints.append(copy.deepcopy(next_point))
+            (plan, fraction) = self.group.compute_cartesian_path(
+                                   waypoints,   # waypoints to follow
+                                   0.01,        # eef_step
+                                   0.0)         # jump_threshold
+            if slow:
+                plan = self.modify_plan(plan)
+            self.group.execute(plan, wait=True) 
+            self.group.stop()
+            self.group.clear_pose_targets()
+        except Exception as e:
+            print("Error in move_to_2D_cartesian_target")
+            print(e)
+        finally: 
+            ee_pose = self.group.get_current_pose()
+            ee_position = ee_pose.pose.position
+            ee_orientation = ee_pose.pose.orientation
+            return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
+            
     def move_to_target(self, joint_values):
         print("GOAL")
         print(list(joint_values))
-        self.group.set_max_velocity_scaling_factor(0.5)
+        self.group.set_max_velocity_scaling_factor(0.8)
         # self.group.allow_replanning(True)
         self.group.go(list(joint_values), wait=True)
         self.group.stop()
@@ -85,20 +207,13 @@ class MoveitArm(object):
         ee_orientation = ee_pose.pose.orientation
         return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
 
-    def monitor_trajectory(self, msg):
-        print(msg)
-        if msg.result.error_code == 0:
-            print("SUCCESSFUL")
-            self.stop()
-
     def stop(self):
-        #try: 
+        #try:
         self.group.stop()
-        self.group.clear_pose_targets()
         ee_pose = self.group.get_current_pose()
         # print("EE_POSE", ee_pose)
         ee_position = ee_pose.pose.position
-        ee_orientation = ee_pose.pose.orientation   
+        ee_orientation = ee_pose.pose.orientation
         return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
 
     def move_to_cartesian_target(self, cartesian_values):
@@ -130,74 +245,6 @@ class MoveitArm(object):
         return ([ee_position.x, ee_position.y, ee_position.z], [ee_orientation.x, ee_orientation.y, ee_orientation.z, ee_orientation.w])
 
 
-    def move_above_engine(self):
-        arm_joints = self.group.get_current_joint_values()
-        arm_joints[0] = 2.2735651273908486
-        arm_joints[1] = -0.5375771900478162
-        arm_joints[2] = 0.6629416082554471
-        arm_joints[3] = -2.270488261072275 
-        arm_joints[4] = 0.360277423871888
-        arm_joints[5] = 1.8296079346338907
-        arm_joints[6] = 0.3163624463594622
-        
-        self.group.set_max_velocity_scaling_factor(0.2)
-        self.group.allow_replanning(True)
-
-        self.group.go(arm_joints, wait=True)
-        self.group.stop()
-        self.group.clear_pose_targets()
-        return True 
-
-    # linear movemonet planning along z axis of the reference frame
-    def plan_linear_z(self, dist, slow=False):
-        if not self.interrupt:
-            try:
-                self.group.set_max_velocity_scaling_factor(0.1)
-                group = self.group
-                waypoints = []
-                wpose = group.get_current_pose().pose
-                wpose.position.z = dist
-                print("move z to ", wpose.position.z)
-                waypoints.append(copy.deepcopy(wpose))
-                (plan, fraction) = group.compute_cartesian_path(waypoints, 0.01, 0.0)
-                if slow:
-                    plan = self.modify_plan(plan)
-                self.group.execute(plan, wait=True)
-                self.group.stop()
-                self.group.clear_pose_targets()
-            except Exception as e:
-                print("Error in move_to_1D_cartesian_target")
-                print(e)
-            finally:
-                ee_pose = self.group.get_current_pose()
-
-
-    def move_to_2D_cartesian_target(self, pose, slow=False):
-        if not self.interrupt:
-            try:
-                self.group.set_max_velocity_scaling_factor(0.05) 
-                waypoints = []
-
-                next_point = self.group.get_current_pose().pose
-
-                next_point.position.x = pose[0]
-                next_point.position.y = pose[1]
-                waypoints.append(copy.deepcopy(next_point))
-                (plan, fraction) = self.group.compute_cartesian_path(
-                                       waypoints,   # waypoints to follow
-                                       0.01,        # eef_step
-                                       0.0)         # jump_threshold
-                if slow:
-                    plan = self.modify_plan(plan)
-                self.group.execute(plan, wait=True) 
-                self.group.stop()
-                self.group.clear_pose_targets()
-            except Exception as e:
-                print("Error in move_to_2D_cartesian_target")
-                print(e)
-            finally: 
-                ee_pose = self.group.get_current_pose()
-
     def handle_reset(self, req):
         print("handle_reset")
         ee_pose, ee_orientation = self.move_to_reset_pose(req.reset_time)
@@ -217,18 +264,17 @@ class MoveitArm(object):
 
 
     def handle_stop(self, req):
-        self.interrupt = True 
         ee_pose, ee_orientation = self.stop()
         return StopActionResponse(ee_pose, ee_orientation)
 
     def handle_move_to_2D_cartesian_target(self, req):
-        self.move_to_2D_cartesian_target(req.pose, req.slow)
-        return Take2DCartesianActionResponse()
+        ee_pose, ee_orientation = self.move_to_2D_cartesian_target(req.pose, req.slow)
+        return Take2DCartesianActionResponse(ee_pose, ee_orientation)
 
     def handle_move_to_1D_cartesian_target(self, req):
-        self.plan_linear_z(req.z_pose, req.slow)
-        return Take1DCartesianActionResponse()
+        ee_pose, ee_orientation = self.plan_linear_z(req.z_pose, req.slow)
+        return Take1DCartesianActionResponse(ee_pose, ee_orientation)
 
-    def handle_move_above_engine(self, req):
-        self.move_above_engine()
-        return TriggerResponse()
+    def handle_rotate_ee(self, req):
+        ee_pose, ee_orientation = self.rotate_ee(req.angle)
+        return RotateEEResponse(ee_pose, ee_orientation)

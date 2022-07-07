@@ -47,13 +47,5 @@
     </description>
   </class>
 
- <class  name="cobot_controllers/ElbowController"
-          type="cobot_controllers::ElbowController"
-          base_class_type="controller_interface::ControllerBase">
-
-    <description>
-      Opendr elbow controller integration.
-    </description>
-  </class>
 
 </library>

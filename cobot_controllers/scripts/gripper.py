@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import time
 from std_srvs.srv import Trigger
 from cobot_controllers.gripper import Gripper
 from cobot_msgs.srv import *
@@ -29,15 +30,16 @@ def grasp(request, robot, action_performed_pub):
     force = request.force if request.force > 0 else 70.0
     #width = request.width/100 if request.width > 0 else 0.004
     width = request.width # 0.008
-    robot.grasp(force, width)
-    # robot.grasp2(width, force)
-    print("action performed")
+    #robot.grasp(force, width)
+    result = robot.grasp(force, width)
+    print("Grasp performed")
+    print(result)
     action_performed_pub.publish(Empty())
     return GraspResponse(True)
 
 if __name__ == '__main__':
     rospy.init_node('panda_gripper_control')
-
+    time.sleep(2)
     panda_gripper = Gripper()
 
     # sub = rospy.Subscriber("/human_ready", Empty, panda_gripper.grasp_triggered)

@@ -9,7 +9,6 @@
     <arg name="load_gripper" value="$(arg load_gripper)" />
   </include>
 
-
   <node name="move_to_start" type="move_to_start.py" pkg="cobot_controllers" output="screen" />
 
 

@@ -12,6 +12,7 @@
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
   <depend>franka_hw</depend>
+  <depend>franka_example_controllers</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <buildtool_depend>catkin</buildtool_depend>

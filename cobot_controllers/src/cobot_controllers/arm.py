@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-from tf.transformations import *
-import rospy
+
 import sys
 import moveit_commander
 import math

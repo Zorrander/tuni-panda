@@ -1,14 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-<<<<<<<< HEAD:panda_tuni/package.xml
   <name>panda_tuni</name>
   <version>0.0.0</version>
   <description>The panda_tuni package</description>
-========
-  <name>panda_webots</name>
-  <version>0.0.0</version>
-  <description>The panda_webots package</description>
->>>>>>>> devel:panda_webots/package.xml
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -25,11 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-<<<<<<<< HEAD:panda_tuni/package.xml
   <!-- <url type="website">http://wiki.ros.org/panda_tuni</url> -->
-========
-  <!-- <url type="website">http://wiki.ros.org/panda_webots</url> -->
->>>>>>>> devel:panda_webots/package.xml
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->

@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(catkin REQUIRED COMPONENTS
     controller_interface
     hardware_interface
-    dynamic_reconfigure
+    franka_example_controllers
     pluginlib
     franka_hw
     roscpp
@@ -24,17 +24,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_python_setup()
 
-generate_dynamic_reconfigure_options(
-  cfg/desired_mass_param.cfg
-  cfg/compliance_param.cfg
-)
 
 catkin_package(
    LIBRARIES cobot_controllers
    CATKIN_DEPENDS
       controller_interface
-      dynamic_reconfigure
       hardware_interface
+      franka_example_controllers
       pluginlib
       franka_hw
       roscpp
@@ -50,26 +46,14 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# add_executable(robot_model_and_robot_state_tutorial
-#    src/robot_model_and_robot_state_tutorial.cpp
-# )
-
 add_library(cobot_controllers
     src/joint_velocity_controller.cpp
     src/cartesian_pose_controller.cpp
     src/joint_position_controller.cpp
-    src/cartesian_impedance_controller.cpp
-    src/joint_impedance_controller.cpp
-    src/elbow_controller.cpp
+    # src/cartesian_impedance_controller.cpp
+    # src/joint_impedance_controller.cpp
 )
+
 
 target_link_libraries(cobot_controllers ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-
-catkin_install_python(PROGRAMS scripts/st_listen.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-target_link_libraries(cobot_controllers ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
-# target_link_libraries(robot_model_and_robot_state_tutorial ${catkin_LIBRARIES} ${Boost_LIBRARIES})
